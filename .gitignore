@@ -1,0 +1,13 @@
+bin/
+obj/
+*.user
+appsettings.Development.json
+appsettings.*.local.json
+
+# Local image upload mock (dev-only files, not source)
+Portfolio.Api/wwwroot/uploads/*
+!Portfolio.Api/wwwroot/uploads/.gitkeep
+
+.DS_Store
+.vscode/
+.idea/
