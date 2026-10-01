@@ -15,13 +15,13 @@ public class ProfileRepository(AppDbContext db) : IProfileRepository
         if (existing is null)
         {
             db.Profiles.Add(profile);
-        }
-        else
-        {
-            db.Entry(existing).CurrentValues.SetValues(profile);
+            await db.SaveChangesAsync();
+            return profile;
         }
 
+        profile.Id = existing.Id;
+        db.Entry(existing).CurrentValues.SetValues(profile);
         await db.SaveChangesAsync();
-        return existing ?? profile;
+        return existing;
     }
 }
