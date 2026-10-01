@@ -17,6 +17,7 @@ public static class DbSeeder
                 Username = "admin",
                 // Default password: "ChangeMe123!" — change it via the admin UI after first login.
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("ChangeMe123!"),
+                Email = "aldimusthofa02@gmail.com",
             });
         }
 
