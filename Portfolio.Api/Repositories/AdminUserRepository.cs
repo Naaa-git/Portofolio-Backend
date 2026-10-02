@@ -50,4 +50,42 @@ public class AdminUserRepository(AppDbContext db) : IAdminUserRepository
         user.EmailOtpExpiresAtUtc = null;
         return await db.SaveChangesAsync() > 0;
     }
+
+    public async Task<bool> UpdatePasswordHashAsync(string username, string newPasswordHash)
+    {
+        var user = await db.AdminUsers.FirstOrDefaultAsync(u => u.Username == username);
+        if (user is null) return false;
+
+        user.PasswordHash = newPasswordHash;
+        return await db.SaveChangesAsync() > 0;
+    }
+
+    public async Task<int> IncrementFailedLoginAttemptsAsync(string username)
+    {
+        var user = await db.AdminUsers.FirstOrDefaultAsync(u => u.Username == username);
+        if (user is null) return 0;
+
+        user.FailedLoginAttempts += 1;
+        await db.SaveChangesAsync();
+        return user.FailedLoginAttempts;
+    }
+
+    public async Task<bool> SetLockoutAsync(string username, DateTime lockedUntilUtc)
+    {
+        var user = await db.AdminUsers.FirstOrDefaultAsync(u => u.Username == username);
+        if (user is null) return false;
+
+        user.LockedUntilUtc = lockedUntilUtc;
+        return await db.SaveChangesAsync() > 0;
+    }
+
+    public async Task<bool> ResetFailedLoginAsync(string username)
+    {
+        var user = await db.AdminUsers.FirstOrDefaultAsync(u => u.Username == username);
+        if (user is null) return false;
+
+        user.FailedLoginAttempts = 0;
+        user.LockedUntilUtc = null;
+        return await db.SaveChangesAsync() > 0;
+    }
 }

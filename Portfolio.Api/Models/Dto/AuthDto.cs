@@ -19,3 +19,5 @@ public record VerifyEmailOtpLoginRequestDto(string PendingToken, string Code);
 public record GoogleLoginRequestDto(string IdToken);
 
 public record MicrosoftLoginRequestDto(string IdToken);
+
+public record ChangePasswordRequestDto(string CurrentPassword, string NewPassword);

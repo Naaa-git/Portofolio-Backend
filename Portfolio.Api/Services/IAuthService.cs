@@ -11,4 +11,5 @@ public interface IAuthService
     Task<LoginResponseDto?> VerifyEmailOtpLoginAsync(VerifyEmailOtpLoginRequestDto dto);
     Task<TotpSetupResponseDto?> SetupTotpAsync(string username);
     Task<bool> EnableTotpAsync(string username, string code);
+    Task<bool> ChangePasswordAsync(string username, ChangePasswordRequestDto dto);
 }

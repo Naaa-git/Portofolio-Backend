@@ -43,8 +43,17 @@ public class AuthService(
     public async Task<LoginResponseDto?> LoginAsync(LoginRequestDto dto)
     {
         var user = await repo.GetByUsernameAsync(dto.Username);
-        if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+        if (user is null) return null;
+
+        if (IsLockedOut(user)) return null;
+
+        if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+        {
+            await RegisterFailedAttemptAsync(user.Username);
             return null;
+        }
+
+        await repo.ResetFailedLoginAsync(user.Username);
 
         // Path C (password) is paired with Email OTP, not TOTP — by design,
         // independent of whatever user.TotpEnabled is set to (that's for the
@@ -97,8 +106,17 @@ public class AuthService(
         if (username is null) return null;
 
         var user = await repo.GetByUsernameAsync(username);
-        if (user?.TotpSecret is null || !totpService.ValidateCode(user.TotpSecret, dto.Code))
+        if (user is null) return null;
+
+        if (IsLockedOut(user)) return null;
+
+        if (user.TotpSecret is null || !totpService.ValidateCode(user.TotpSecret, dto.Code))
+        {
+            await RegisterFailedAttemptAsync(username);
             return null;
+        }
+
+        await repo.ResetFailedLoginAsync(username);
 
         var (accessToken, expiresAt) = GenerateToken(user.Username, _jwt.Audience, _jwt.ExpiresInMinutes);
         return new LoginResponseDto(LoginChallenge.None, accessToken, expiresAt, null);
@@ -110,12 +128,22 @@ public class AuthService(
         if (username is null) return null;
 
         var user = await repo.GetByUsernameAsync(username);
-        if (user?.EmailOtpCodeHash is null || user.EmailOtpExpiresAtUtc is null)
+        if (user is null) return null;
+
+        if (IsLockedOut(user)) return null;
+
+        var codeIsValid = user.EmailOtpCodeHash is not null
+            && user.EmailOtpExpiresAtUtc is not null
+            && user.EmailOtpExpiresAtUtc >= DateTime.UtcNow
+            && HashOtpCode(dto.Code) == user.EmailOtpCodeHash;
+
+        if (!codeIsValid)
+        {
+            await RegisterFailedAttemptAsync(username);
             return null;
+        }
 
-        if (user.EmailOtpExpiresAtUtc < DateTime.UtcNow) return null;
-        if (HashOtpCode(dto.Code) != user.EmailOtpCodeHash) return null;
-
+        await repo.ResetFailedLoginAsync(username);
         await repo.ClearEmailOtpAsync(username); // one-time use — consume it immediately
 
         var (accessToken, expiresAt) = GenerateToken(user.Username, _jwt.Audience, _jwt.ExpiresInMinutes);
@@ -148,6 +176,18 @@ public class AuthService(
         if (!totpService.ValidateCode(user.TotpSecret, code)) return false;
 
         return await repo.EnableTotpAsync(username);
+    }
+
+    public async Task<bool> ChangePasswordAsync(string username, ChangePasswordRequestDto dto)
+    {
+        if (!IsPasswordStrongEnough(dto.NewPassword)) return false;
+
+        var user = await repo.GetByUsernameAsync(username);
+        if (user is null || !BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
+            return false;
+
+        var newHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        return await repo.UpdatePasswordHashAsync(username, newHash);
     }
 
     private async Task<LoginResponseDto?> IssueEmailOtpChallengeAsync(AdminUser user)
@@ -184,6 +224,43 @@ public class AuthService(
         var (pendingToken, _) = GenerateToken(user.Username, TotpPendingAudience, PendingTokenExpiresInMinutes);
         return new LoginResponseDto(LoginChallenge.Totp, null, null, pendingToken);
     }
+
+    // Kept in sync with the checklist shown in the frontend form — if you add a
+    // rule here, add it there too (and vice versa), or the UI will lie about
+    // what the server actually requires.
+    private static bool IsPasswordStrongEnough(string password) =>
+        password.Length >= 8
+        && password.Any(char.IsUpper)
+        && password.Any(char.IsDigit);
+
+    private static bool IsLockedOut(AdminUser user) =>
+        user.LockedUntilUtc is not null && user.LockedUntilUtc > DateTime.UtcNow;
+
+    private async Task RegisterFailedAttemptAsync(string username)
+    {
+        var attempts = await repo.IncrementFailedLoginAttemptsAsync(username);
+        var lockoutDuration = GetLockoutDuration(attempts);
+        if (lockoutDuration > TimeSpan.Zero)
+        {
+            await repo.SetLockoutAsync(username, DateTime.UtcNow.Add(lockoutDuration));
+        }
+    }
+
+    /// <summary>
+    /// Progressive backoff tied to the ACCOUNT, not the source IP — the first couple
+    /// of mistakes (fat-fingered password, mistyped code) go unpunished, but repeated
+    /// failures from any IP (or many rotating IPs, as in a botnet attack) escalate the
+    /// same counter, since they're all attacking the one account that matters here.
+    /// </summary>
+    private static TimeSpan GetLockoutDuration(int failedAttempts) => failedAttempts switch
+    {
+        <= 2 => TimeSpan.Zero,
+        3 => TimeSpan.FromSeconds(30),
+        4 => TimeSpan.FromMinutes(2),
+        5 => TimeSpan.FromMinutes(5),
+        6 => TimeSpan.FromMinutes(15),
+        _ => TimeSpan.FromMinutes(30),
+    };
 
     private static string GenerateNumericCode(int digits)
     {

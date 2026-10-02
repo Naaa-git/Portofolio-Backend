@@ -10,4 +10,8 @@ public interface IAdminUserRepository
     Task<bool> EnableTotpAsync(string username);
     Task<bool> SetEmailOtpAsync(string username, string codeHash, DateTime expiresAtUtc);
     Task<bool> ClearEmailOtpAsync(string username);
+    Task<bool> UpdatePasswordHashAsync(string username, string newPasswordHash);
+    Task<int> IncrementFailedLoginAttemptsAsync(string username);
+    Task<bool> SetLockoutAsync(string username, DateTime lockedUntilUtc);
+    Task<bool> ResetFailedLoginAsync(string username);
 }

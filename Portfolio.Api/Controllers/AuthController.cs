@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Portfolio.Api.Models.Dto;
 using Portfolio.Api.Services;
 
@@ -7,6 +8,7 @@ namespace Portfolio.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
+[EnableRateLimiting("auth")]
 public class AuthController(IAuthService authService) : ControllerBase
 {
     [HttpPost("login")]
@@ -60,5 +62,16 @@ public class AuthController(IAuthService authService) : ControllerBase
         var username = User.Identity!.Name!;
         var success = await authService.EnableTotpAsync(username, dto.Code);
         return success ? NoContent() : BadRequest(new { message = "Kode salah atau sudah kedaluwarsa." });
+    }
+
+    [HttpPut("password")]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword(ChangePasswordRequestDto dto)
+    {
+        var username = User.Identity!.Name!;
+        var success = await authService.ChangePasswordAsync(username, dto);
+        return success
+            ? NoContent()
+            : BadRequest(new { message = "Password saat ini salah, atau password baru belum memenuhi aturan (min. 8 karakter, ada huruf besar, ada angka)." });
     }
 }

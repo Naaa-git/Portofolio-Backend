@@ -20,4 +20,11 @@ public class AdminUser
     // after a successful verify, so there's never a "stale valid code" lying around.
     public string? EmailOtpCodeHash { get; set; }
     public DateTime? EmailOtpExpiresAtUtc { get; set; }
+
+    // Account-level brute-force defense: tracks wrong password/TOTP/email-OTP
+    // attempts regardless of source IP, so an attacker can't bypass it by
+    // rotating IPs — the counter is tied to the account being attacked, not
+    // where the requests come from.
+    public int FailedLoginAttempts { get; set; }
+    public DateTime? LockedUntilUtc { get; set; }
 }
