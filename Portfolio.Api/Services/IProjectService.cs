@@ -6,6 +6,7 @@ public interface IProjectService
 {
     Task<List<ProjectDto>> GetAllAsync(string lang);
     Task<ProjectDto?> GetBySlugAsync(string slug, string lang);
+    Task<List<ProjectDto>> SearchAsync(string query, string lang);
     Task<List<ProjectAdminDto>> GetAllAdminAsync();
     Task<ProjectAdminDto> CreateAsync(ProjectUpsertDto dto);
     Task<bool> UpdateAsync(int id, ProjectUpsertDto dto);

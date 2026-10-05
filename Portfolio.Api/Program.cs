@@ -46,6 +46,7 @@ builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptio
 builder.Services.Configure<GoogleOptions>(builder.Configuration.GetSection(GoogleOptions.SectionName));
 builder.Services.Configure<MicrosoftOptions>(builder.Configuration.GetSection(MicrosoftOptions.SectionName));
 builder.Services.Configure<BrevoOptions>(builder.Configuration.GetSection(BrevoOptions.SectionName));
+builder.Services.Configure<OpenSearchOptions>(builder.Configuration.GetSection(OpenSearchOptions.SectionName));
 
 builder.Services.AddSingleton(new ConfigurationManager<OpenIdConnectConfiguration>(
     "https://login.microsoftonline.com/consumers/v2.0/.well-known/openid-configuration",
@@ -66,6 +67,7 @@ builder.Services.AddScoped<ISkillService, SkillService>();
 builder.Services.AddScoped<ISocialLinkService, SocialLinkService>();
 builder.Services.AddScoped<IExperienceService, ExperienceService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddSingleton<IProjectSearchService, ProjectSearchService>();
 builder.Services.AddScoped<IOutsideCodeService, OutsideCodeService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<ITotpService, TotpService>();
@@ -127,6 +129,13 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();
     await DbSeeder.SeedAsync(db);
+
+    // Full reindex on every startup keeps OpenSearch from ever drifting out of
+    // sync with Postgres (e.g. after editing seed data directly, or restoring
+    // a DB backup) — cheap enough at this scale to just redo it every boot.
+    var searchService = scope.ServiceProvider.GetRequiredService<IProjectSearchService>();
+    await searchService.EnsureIndexAsync();
+    await searchService.ReindexAllAsync(await db.Projects.ToListAsync());
 }
 
 if (app.Environment.IsDevelopment())

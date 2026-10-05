@@ -17,6 +17,10 @@ public class ProjectsController(IProjectService service) : ControllerBase
     [Authorize]
     public async Task<ActionResult<List<ProjectAdminDto>>> GetAllAdmin() => Ok(await service.GetAllAdminAsync());
 
+    [HttpGet("search")]
+    public async Task<ActionResult<List<ProjectDto>>> Search([FromQuery] string q, [FromQuery] string lang = "id") =>
+        string.IsNullOrWhiteSpace(q) ? Ok(new List<ProjectDto>()) : Ok(await service.SearchAsync(q, lang));
+
     [HttpGet("{slug}")]
     public async Task<ActionResult<ProjectDto>> GetBySlug(string slug, [FromQuery] string lang = "id")
     {
