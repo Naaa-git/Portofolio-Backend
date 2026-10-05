@@ -10,18 +10,23 @@ namespace Portfolio.Api.Controllers;
 public class ProjectsController(IProjectService service) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<List<ProjectDto>>> GetAll() => Ok(await service.GetAllAsync());
+    public async Task<ActionResult<List<ProjectDto>>> GetAll([FromQuery] string lang = "id") =>
+        Ok(await service.GetAllAsync(lang));
+
+    [HttpGet("admin")]
+    [Authorize]
+    public async Task<ActionResult<List<ProjectAdminDto>>> GetAllAdmin() => Ok(await service.GetAllAdminAsync());
 
     [HttpGet("{slug}")]
-    public async Task<ActionResult<ProjectDto>> GetBySlug(string slug)
+    public async Task<ActionResult<ProjectDto>> GetBySlug(string slug, [FromQuery] string lang = "id")
     {
-        var project = await service.GetBySlugAsync(slug);
+        var project = await service.GetBySlugAsync(slug, lang);
         return project is null ? NotFound() : Ok(project);
     }
 
     [HttpPost]
     [Authorize]
-    public async Task<ActionResult<ProjectDto>> Create(ProjectUpsertDto dto) => Ok(await service.CreateAsync(dto));
+    public async Task<ActionResult<ProjectAdminDto>> Create(ProjectUpsertDto dto) => Ok(await service.CreateAsync(dto));
 
     [HttpPut("{id:int}")]
     [Authorize]

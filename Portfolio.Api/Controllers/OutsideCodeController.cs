@@ -12,26 +12,39 @@ public class OutsideCodeController(IOutsideCodeService service) : ControllerBase
     // --- Intro ---
 
     [HttpGet("intro")]
-    public async Task<ActionResult<OutsideCodeIntroDto>> GetIntro()
+    public async Task<ActionResult<OutsideCodeIntroDto>> GetIntro([FromQuery] string lang = "id")
     {
-        var intro = await service.GetIntroAsync();
+        var intro = await service.GetIntroAsync(lang);
+        return intro is null ? NotFound() : Ok(intro);
+    }
+
+    [HttpGet("intro/admin")]
+    [Authorize]
+    public async Task<ActionResult<OutsideCodeIntroAdminDto>> GetIntroAdmin()
+    {
+        var intro = await service.GetIntroAdminAsync();
         return intro is null ? NotFound() : Ok(intro);
     }
 
     [HttpPut("intro")]
     [Authorize]
-    public async Task<ActionResult<OutsideCodeIntroDto>> UpdateIntro(OutsideCodeIntroDto dto) =>
+    public async Task<ActionResult<OutsideCodeIntroAdminDto>> UpdateIntro(OutsideCodeIntroUpsertDto dto) =>
         Ok(await service.UpdateIntroAsync(dto));
 
     // --- Away From the Keyboard ---
 
     [HttpGet("away-from-keyboard")]
-    public async Task<ActionResult<List<AwayFromKeyboardItemDto>>> GetAwayFromKeyboard() =>
-        Ok(await service.GetAwayFromKeyboardAsync());
+    public async Task<ActionResult<List<AwayFromKeyboardItemDto>>> GetAwayFromKeyboard([FromQuery] string lang = "id") =>
+        Ok(await service.GetAwayFromKeyboardAsync(lang));
+
+    [HttpGet("away-from-keyboard/admin")]
+    [Authorize]
+    public async Task<ActionResult<List<AwayFromKeyboardItemAdminDto>>> GetAwayFromKeyboardAdmin() =>
+        Ok(await service.GetAwayFromKeyboardAdminAsync());
 
     [HttpPost("away-from-keyboard")]
     [Authorize]
-    public async Task<ActionResult<AwayFromKeyboardItemDto>> AddAwayFromKeyboard(AwayFromKeyboardItemUpsertDto dto) =>
+    public async Task<ActionResult<AwayFromKeyboardItemAdminDto>> AddAwayFromKeyboard(AwayFromKeyboardItemUpsertDto dto) =>
         Ok(await service.AddAwayFromKeyboardAsync(dto));
 
     [HttpPut("away-from-keyboard/{id:int}")]
@@ -47,12 +60,17 @@ public class OutsideCodeController(IOutsideCodeService service) : ControllerBase
     // --- Movies & Shows ---
 
     [HttpGet("movies")]
-    public async Task<ActionResult<List<MovieTakeDto>>> GetMovies() =>
-        Ok(await service.GetMoviesAsync());
+    public async Task<ActionResult<List<MovieTakeDto>>> GetMovies([FromQuery] string lang = "id") =>
+        Ok(await service.GetMoviesAsync(lang));
+
+    [HttpGet("movies/admin")]
+    [Authorize]
+    public async Task<ActionResult<List<MovieTakeAdminDto>>> GetMoviesAdmin() =>
+        Ok(await service.GetMoviesAdminAsync());
 
     [HttpPost("movies")]
     [Authorize]
-    public async Task<ActionResult<MovieTakeDto>> AddMovie(MovieTakeUpsertDto dto) =>
+    public async Task<ActionResult<MovieTakeAdminDto>> AddMovie(MovieTakeUpsertDto dto) =>
         Ok(await service.AddMovieAsync(dto));
 
     [HttpPut("movies/{id:int}")]
@@ -110,12 +128,17 @@ public class OutsideCodeController(IOutsideCodeService service) : ControllerBase
     // --- Books ---
 
     [HttpGet("books")]
-    public async Task<ActionResult<List<OutsideCodeBookDto>>> GetBooks() =>
-        Ok(await service.GetBooksAsync());
+    public async Task<ActionResult<List<OutsideCodeBookDto>>> GetBooks([FromQuery] string lang = "id") =>
+        Ok(await service.GetBooksAsync(lang));
+
+    [HttpGet("books/admin")]
+    [Authorize]
+    public async Task<ActionResult<List<OutsideCodeBookAdminDto>>> GetBooksAdmin() =>
+        Ok(await service.GetBooksAdminAsync());
 
     [HttpPost("books")]
     [Authorize]
-    public async Task<ActionResult<OutsideCodeBookDto>> AddBook(OutsideCodeBookUpsertDto dto) =>
+    public async Task<ActionResult<OutsideCodeBookAdminDto>> AddBook(OutsideCodeBookUpsertDto dto) =>
         Ok(await service.AddBookAsync(dto));
 
     [HttpPut("books/{id:int}")]
@@ -131,12 +154,17 @@ public class OutsideCodeController(IOutsideCodeService service) : ControllerBase
     // --- Life Inspirations ---
 
     [HttpGet("life-inspirations")]
-    public async Task<ActionResult<List<LifeInspirationDto>>> GetLifeInspirations() =>
-        Ok(await service.GetLifeInspirationsAsync());
+    public async Task<ActionResult<List<LifeInspirationDto>>> GetLifeInspirations([FromQuery] string lang = "id") =>
+        Ok(await service.GetLifeInspirationsAsync(lang));
+
+    [HttpGet("life-inspirations/admin")]
+    [Authorize]
+    public async Task<ActionResult<List<LifeInspirationAdminDto>>> GetLifeInspirationsAdmin() =>
+        Ok(await service.GetLifeInspirationsAdminAsync());
 
     [HttpPost("life-inspirations")]
     [Authorize]
-    public async Task<ActionResult<LifeInspirationDto>> AddLifeInspiration(LifeInspirationUpsertDto dto) =>
+    public async Task<ActionResult<LifeInspirationAdminDto>> AddLifeInspiration(LifeInspirationUpsertDto dto) =>
         Ok(await service.AddLifeInspirationAsync(dto));
 
     [HttpPut("life-inspirations/{id:int}")]

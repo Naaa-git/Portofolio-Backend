@@ -10,11 +10,16 @@ namespace Portfolio.Api.Controllers;
 public class SkillsController(ISkillService service) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<List<SkillDto>>> GetAll() => Ok(await service.GetAllAsync());
+    public async Task<ActionResult<List<SkillDto>>> GetAll([FromQuery] string lang = "id") =>
+        Ok(await service.GetAllAsync(lang));
+
+    [HttpGet("admin")]
+    [Authorize]
+    public async Task<ActionResult<List<SkillAdminDto>>> GetAllAdmin() => Ok(await service.GetAllAdminAsync());
 
     [HttpPost]
     [Authorize]
-    public async Task<ActionResult<SkillDto>> Create(SkillUpsertDto dto) => Ok(await service.CreateAsync(dto));
+    public async Task<ActionResult<SkillAdminDto>> Create(SkillUpsertDto dto) => Ok(await service.CreateAsync(dto));
 
     [HttpPut("{id:int}")]
     [Authorize]

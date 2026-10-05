@@ -10,11 +10,16 @@ namespace Portfolio.Api.Controllers;
 public class ExperiencesController(IExperienceService service) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<List<ExperienceDto>>> GetAll() => Ok(await service.GetAllAsync());
+    public async Task<ActionResult<List<ExperienceDto>>> GetAll([FromQuery] string lang = "id") =>
+        Ok(await service.GetAllAsync(lang));
+
+    [HttpGet("admin")]
+    [Authorize]
+    public async Task<ActionResult<List<ExperienceAdminDto>>> GetAllAdmin() => Ok(await service.GetAllAdminAsync());
 
     [HttpPost]
     [Authorize]
-    public async Task<ActionResult<ExperienceDto>> Create(ExperienceUpsertDto dto) => Ok(await service.CreateAsync(dto));
+    public async Task<ActionResult<ExperienceAdminDto>> Create(ExperienceUpsertDto dto) => Ok(await service.CreateAsync(dto));
 
     [HttpPut("{id:int}")]
     [Authorize]

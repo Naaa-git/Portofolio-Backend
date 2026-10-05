@@ -4,16 +4,19 @@ namespace Portfolio.Api.Services;
 
 public interface IOutsideCodeService
 {
-    Task<OutsideCodeIntroDto?> GetIntroAsync();
-    Task<OutsideCodeIntroDto> UpdateIntroAsync(OutsideCodeIntroDto dto);
+    Task<OutsideCodeIntroDto?> GetIntroAsync(string lang);
+    Task<OutsideCodeIntroAdminDto?> GetIntroAdminAsync();
+    Task<OutsideCodeIntroAdminDto> UpdateIntroAsync(OutsideCodeIntroUpsertDto dto);
 
-    Task<List<AwayFromKeyboardItemDto>> GetAwayFromKeyboardAsync();
-    Task<AwayFromKeyboardItemDto> AddAwayFromKeyboardAsync(AwayFromKeyboardItemUpsertDto dto);
+    Task<List<AwayFromKeyboardItemDto>> GetAwayFromKeyboardAsync(string lang);
+    Task<List<AwayFromKeyboardItemAdminDto>> GetAwayFromKeyboardAdminAsync();
+    Task<AwayFromKeyboardItemAdminDto> AddAwayFromKeyboardAsync(AwayFromKeyboardItemUpsertDto dto);
     Task<bool> UpdateAwayFromKeyboardAsync(int id, AwayFromKeyboardItemUpsertDto dto);
     Task<bool> DeleteAwayFromKeyboardAsync(int id);
 
-    Task<List<MovieTakeDto>> GetMoviesAsync();
-    Task<MovieTakeDto> AddMovieAsync(MovieTakeUpsertDto dto);
+    Task<List<MovieTakeDto>> GetMoviesAsync(string lang);
+    Task<List<MovieTakeAdminDto>> GetMoviesAdminAsync();
+    Task<MovieTakeAdminDto> AddMovieAsync(MovieTakeUpsertDto dto);
     Task<bool> UpdateMovieAsync(int id, MovieTakeUpsertDto dto);
     Task<bool> DeleteMovieAsync(int id);
 
@@ -27,13 +30,15 @@ public interface IOutsideCodeService
     Task<bool> UpdatePodcastAsync(int id, PodcastChannelUpsertDto dto);
     Task<bool> DeletePodcastAsync(int id);
 
-    Task<List<OutsideCodeBookDto>> GetBooksAsync();
-    Task<OutsideCodeBookDto> AddBookAsync(OutsideCodeBookUpsertDto dto);
+    Task<List<OutsideCodeBookDto>> GetBooksAsync(string lang);
+    Task<List<OutsideCodeBookAdminDto>> GetBooksAdminAsync();
+    Task<OutsideCodeBookAdminDto> AddBookAsync(OutsideCodeBookUpsertDto dto);
     Task<bool> UpdateBookAsync(int id, OutsideCodeBookUpsertDto dto);
     Task<bool> DeleteBookAsync(int id);
 
-    Task<List<LifeInspirationDto>> GetLifeInspirationsAsync();
-    Task<LifeInspirationDto> AddLifeInspirationAsync(LifeInspirationUpsertDto dto);
+    Task<List<LifeInspirationDto>> GetLifeInspirationsAsync(string lang);
+    Task<List<LifeInspirationAdminDto>> GetLifeInspirationsAdminAsync();
+    Task<LifeInspirationAdminDto> AddLifeInspirationAsync(LifeInspirationUpsertDto dto);
     Task<bool> UpdateLifeInspirationAsync(int id, LifeInspirationUpsertDto dto);
     Task<bool> DeleteLifeInspirationAsync(int id);
 }

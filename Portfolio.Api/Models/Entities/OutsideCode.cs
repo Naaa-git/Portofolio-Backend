@@ -8,15 +8,15 @@ namespace Portfolio.Api.Models.Entities;
 public class OutsideCodeIntro
 {
     public int Id { get; set; }
-    public string Paragraph1 { get; set; } = default!;
-    public string Paragraph2 { get; set; } = default!;
+    public Dictionary<string, string> Paragraph1 { get; set; } = new();
+    public Dictionary<string, string> Paragraph2 { get; set; } = new();
 }
 
 public class AwayFromKeyboardItem
 {
     public int Id { get; set; }
-    public string Title { get; set; } = default!;
-    public string Note { get; set; } = default!;
+    public Dictionary<string, string> Title { get; set; } = new();
+    public Dictionary<string, string> Note { get; set; } = new();
     public string? ImageUrl { get; set; }
     public int SortOrder { get; set; }
 }
@@ -25,7 +25,7 @@ public class MovieTake
 {
     public int Id { get; set; }
     public string Title { get; set; } = default!;
-    public string Take { get; set; } = default!;
+    public Dictionary<string, string> Take { get; set; } = new();
     public string? ImageUrl { get; set; }
     public int SortOrder { get; set; }
 }
@@ -53,7 +53,7 @@ public class OutsideCodeBook
     public int Id { get; set; }
     public string Title { get; set; } = default!;
     public string Author { get; set; } = default!;
-    public string? Note { get; set; }
+    public Dictionary<string, string> Note { get; set; } = new();
     public string? ImageUrl { get; set; }
     public bool IsCurrentlyReading { get; set; }
     public int SortOrder { get; set; }
@@ -65,8 +65,8 @@ public class LifeInspiration
     public string Name { get; set; } = default!;
 
     /// <summary>What's taken from this person — e.g. "Knowledge", "Ambition".</summary>
-    public string Aspect { get; set; } = default!;
-    public string Note { get; set; } = default!;
+    public Dictionary<string, string> Aspect { get; set; } = new();
+    public Dictionary<string, string> Note { get; set; } = new();
     public string? ImageUrl { get; set; }
     public int SortOrder { get; set; }
 }

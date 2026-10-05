@@ -1,3 +1,4 @@
+using Portfolio.Api.Data;
 using Portfolio.Api.Models.Dto;
 using Portfolio.Api.Models.Entities;
 using Portfolio.Api.Repositories;
@@ -6,10 +7,13 @@ namespace Portfolio.Api.Services;
 
 public class ExperienceService(IExperienceRepository repo) : IExperienceService
 {
-    public async Task<List<ExperienceDto>> GetAllAsync() =>
-        (await repo.GetAllAsync()).Select(ToDto).ToList();
+    public async Task<List<ExperienceDto>> GetAllAsync(string lang) =>
+        (await repo.GetAllAsync()).Select(e => ToDto(e, lang)).ToList();
 
-    public async Task<ExperienceDto> CreateAsync(ExperienceUpsertDto dto)
+    public async Task<List<ExperienceAdminDto>> GetAllAdminAsync() =>
+        (await repo.GetAllAsync()).Select(ToAdminDto).ToList();
+
+    public async Task<ExperienceAdminDto> CreateAsync(ExperienceUpsertDto dto)
     {
         var entity = new Experience
         {
@@ -17,7 +21,7 @@ public class ExperienceService(IExperienceRepository repo) : IExperienceService
             Location = dto.Location, Current = dto.Current, Description = dto.Description, Skills = dto.Skills,
         };
         var created = await repo.AddAsync(entity);
-        return ToDto(created);
+        return ToAdminDto(created);
     }
 
     public Task<bool> UpdateAsync(int id, ExperienceUpsertDto dto) => repo.UpdateAsync(new Experience
@@ -28,6 +32,9 @@ public class ExperienceService(IExperienceRepository repo) : IExperienceService
 
     public Task<bool> DeleteAsync(int id) => repo.DeleteAsync(id);
 
-    private static ExperienceDto ToDto(Experience e) => new(
+    private static ExperienceDto ToDto(Experience e, string lang) => new(
+        e.Id, e.Company, e.Role.Resolve(lang), e.Type, e.Period, e.Location, e.Current, e.Description.ResolveList(lang), e.Skills);
+
+    private static ExperienceAdminDto ToAdminDto(Experience e) => new(
         e.Id, e.Company, e.Role, e.Type, e.Period, e.Location, e.Current, e.Description, e.Skills);
 }

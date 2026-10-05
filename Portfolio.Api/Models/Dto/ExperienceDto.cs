@@ -4,6 +4,10 @@ public record ExperienceDto(
     int Id, string Company, string Role, string Type, string Period,
     string Location, bool Current, List<string> Description, List<string> Skills);
 
+public record ExperienceAdminDto(
+    int Id, string Company, Dictionary<string, string> Role, string Type, string Period,
+    string Location, bool Current, List<Dictionary<string, string>> Description, List<string> Skills);
+
 public record ExperienceUpsertDto(
-    string Company, string Role, string Type, string Period,
-    string Location, bool Current, List<string> Description, List<string> Skills);
+    string Company, Dictionary<string, string> Role, string Type, string Period,
+    string Location, bool Current, List<Dictionary<string, string>> Description, List<string> Skills);
