@@ -181,6 +181,202 @@ public static class DbSeeder
             );
         }
 
+        if (!db.OutsideCodeIntros.Any())
+        {
+            db.OutsideCodeIntros.Add(new OutsideCodeIntro
+            {
+                Paragraph1 = "Halaman ini nggak ada project, skill, atau achievement — isinya sisi gw di luar kerjaan.",
+                Paragraph2 = "Di luar kerjaan, perhatian gw suka pindah-pindah. Minggu ini mikirin software architecture, " +
+                             "minggu depan udah kepikiran hal yang nggak ada hubungannya sama sekali, terus abis itu sibuk " +
+                             "belajar gitar. Nggak ada benang merah yang rapi — emang gitu aja.",
+            });
+        }
+
+        if (!db.AwayFromKeyboardItems.Any())
+        {
+            db.AwayFromKeyboardItems.AddRange(
+                new AwayFromKeyboardItem
+                {
+                    Title = "Guitar",
+                    Note = "Mulai dari nol — belum pernah pegang alat musik sebelumnya. Lagi latihan chord, perpindahan chord, strumming.",
+                    ImageUrl = "https://upload.wikimedia.org/wikipedia/commons/4/45/GuitareClassique5.png",
+                    SortOrder = 1,
+                },
+                new AwayFromKeyboardItem
+                {
+                    Title = "Running",
+                    Note = "Easy running, belum fokus ngejar pace. Lebih ke suka aja habis lari.",
+                    ImageUrl = "https://upload.wikimedia.org/wikipedia/commons/0/0a/Speedsuit.jpg",
+                    SortOrder = 2,
+                },
+                new AwayFromKeyboardItem
+                {
+                    Title = "Workout",
+                    Note = "Fokus hypertrophy, progres jangka panjang daripada latihan random.",
+                    ImageUrl = "https://upload.wikimedia.org/wikipedia/commons/d/dc/Small_group_fitness_sessions_bundall.jpg",
+                    SortOrder = 3,
+                },
+                new AwayFromKeyboardItem
+                {
+                    Title = "Reading",
+                    Note = "Suka baca soal psychology dan self-development. Kadang kelar, kadang mandek di tengah terus pindah buku lain.",
+                    ImageUrl = "https://upload.wikimedia.org/wikipedia/commons/b/b6/Gutenberg_Bible%2C_Lenox_Copy%2C_New_York_Public_Library%2C_2009._Pic_01.jpg",
+                    SortOrder = 4,
+                },
+                new AwayFromKeyboardItem
+                {
+                    Title = "Games",
+                    Note = "Suka main, tapi juga suka mikirin kenapa suatu game bikin pengen dimainin lagi dan lagi. Lagi iseng nyoba bikin game sendiri.",
+                    ImageUrl = "https://upload.wikimedia.org/wikipedia/commons/c/cf/SNES-Controller-in-Hand.jpg",
+                    SortOrder = 5,
+                }
+            );
+        }
+
+        if (!db.MovieTakes.Any())
+        {
+            db.MovieTakes.AddRange(
+                new MovieTake
+                {
+                    Title = "Game of Thrones",
+                    Take = "Serunya luar biasa dari awal sampai beberapa season terakhir. Endingnya menurut gw nggak sebagus itu.",
+                    ImageUrl = "https://upload.wikimedia.org/wikipedia/en/d/d8/Game_of_Thrones_title_card.jpg",
+                    SortOrder = 1,
+                },
+                new MovieTake
+                {
+                    Title = "Attack on Titan",
+                    Take = "Gw di kubu Eren. Ngerti kalau ini pendapat yang nggak semua orang setuju.",
+                    ImageUrl = "https://upload.wikimedia.org/wikipedia/en/d/d6/Shingeki_no_Kyojin_manga_volume_1.jpg",
+                    SortOrder = 2,
+                }
+            );
+        }
+
+        if (!db.MusicArtists.Any())
+        {
+            db.MusicArtists.AddRange(
+                new MusicArtist
+                {
+                    Name = "Rex Orange County",
+                    Url = "https://open.spotify.com/artist/7pbDxGE6nQSZVfiFdq9lOL",
+                    ImageUrl = "https://upload.wikimedia.org/wikipedia/commons/c/cf/Rex_Orange_County_-_Photo_by_Skyler_Pradhan_%28cropped%29.jpg",
+                    SortOrder = 1,
+                },
+                new MusicArtist
+                {
+                    Name = "Jeremy Zucker",
+                    Url = "https://open.spotify.com/intl-id/artist/3gIRvgZssIb9aiirIg0nI3",
+                    ImageUrl = "https://upload.wikimedia.org/wikipedia/commons/e/ee/Jeremy_Zucker_Is_Nothing_Sacred_Tour.jpg",
+                    SortOrder = 2,
+                },
+                new MusicArtist
+                {
+                    Name = "Denny Caknan",
+                    Url = "https://open.spotify.com/intl-id/artist/3Gr3opnAGpJiTowsTyJFWG",
+                    ImageUrl = "https://upload.wikimedia.org/wikipedia/commons/0/09/Denny_Caknan_Boshe_Jogja.png",
+                    SortOrder = 3,
+                }
+            );
+        }
+
+        if (!db.PodcastChannels.Any())
+        {
+            db.PodcastChannels.AddRange(
+                new PodcastChannel
+                {
+                    Name = "Raditya Dika",
+                    Url = "https://www.youtube.com/@radityadika",
+                    ImageUrl = "https://upload.wikimedia.org/wikipedia/commons/2/25/Raditya_Dika_on_Interview_GoGirl_TV.jpg",
+                    SortOrder = 1,
+                },
+                new PodcastChannel
+                {
+                    Name = "dr. Tirta",
+                    Url = "https://www.youtube.com/@TirtaPengPengPeng",
+                    ImageUrl = "https://upload.wikimedia.org/wikipedia/commons/7/7e/Tirta_Mandira_Hudhi_%28cropped%29.jpg",
+                    SortOrder = 2,
+                },
+                new PodcastChannel
+                {
+                    Name = "PZN (Programmer Zaman Now)",
+                    Url = "https://www.youtube.com/@ProgrammerZamanNow",
+                    ImageUrl = null,
+                    SortOrder = 3,
+                }
+            );
+        }
+
+        if (!db.OutsideCodeBooks.Any())
+        {
+            db.OutsideCodeBooks.AddRange(
+                new OutsideCodeBook
+                {
+                    Title = "Man's Search for Meaning",
+                    Author = "Viktor Frankl",
+                    ImageUrl = "https://covers.openlibrary.org/b/id/8516506-L.jpg",
+                    IsCurrentlyReading = true,
+                    SortOrder = 1,
+                },
+                new OutsideCodeBook
+                {
+                    Title = "Thinking, Fast and Slow",
+                    Author = "Daniel Kahneman",
+                    Note = "Bikin sadar: logic itu lebih sering kalah sama insting cepat daripada yang kita kira.",
+                    ImageUrl = "https://covers.openlibrary.org/b/id/13290711-L.jpg",
+                    IsCurrentlyReading = false,
+                    SortOrder = 2,
+                },
+                new OutsideCodeBook
+                {
+                    Title = "Atomic Habits",
+                    Author = "James Clear",
+                    Note = "Beberapa habit kecil dari buku ini masih jalan sampai sekarang.",
+                    ImageUrl = "https://covers.openlibrary.org/b/id/12539702-L.jpg",
+                    IsCurrentlyReading = false,
+                    SortOrder = 3,
+                }
+            );
+        }
+
+        if (!db.LifeInspirations.Any())
+        {
+            db.LifeInspirations.AddRange(
+                new LifeInspiration
+                {
+                    Name = "Raditya Dika",
+                    Aspect = "Pengetahuan",
+                    Note = "Caranya ngemas hal yang berat jadi ringan dan gampang dicerna — tanpa kehilangan isinya.",
+                    ImageUrl = "https://upload.wikimedia.org/wikipedia/commons/2/25/Raditya_Dika_on_Interview_GoGirl_TV.jpg",
+                    SortOrder = 1,
+                },
+                new LifeInspiration
+                {
+                    Name = "dr. Tirta",
+                    Aspect = "Kesehatan & Lifestyle",
+                    Note = "Blak-blakan soal kesehatan dan kebiasaan hidup, tanpa basa-basi yang nggak perlu.",
+                    ImageUrl = "https://upload.wikimedia.org/wikipedia/commons/7/7e/Tirta_Mandira_Hudhi_%28cropped%29.jpg",
+                    SortOrder = 2,
+                },
+                new LifeInspiration
+                {
+                    Name = "Windah Basudara",
+                    Aspect = "Funny tapi ada sisi serius",
+                    Note = "Kelihatan konyol di permukaan, tapi konsisten dan kerja keras di baliknya — jarang orang notice itu.",
+                    ImageUrl = "https://upload.wikimedia.org/wikipedia/commons/e/eb/Windah_Basudara_di_tahun_2022.jpg",
+                    SortOrder = 3,
+                },
+                new LifeInspiration
+                {
+                    Name = "Marc Márquez",
+                    Aspect = "Ambisi & Tekad",
+                    Note = "Cedera parah berkali-kali, tapi tetap balik lagi ke lintasan. Itu level tekad yang susah ditiru.",
+                    ImageUrl = "https://upload.wikimedia.org/wikipedia/commons/a/a7/Marc_Marquez_at_the_2026_Spanish_Grand_Prix_%28cropped%29.jpg",
+                    SortOrder = 4,
+                }
+            );
+        }
+
         await db.SaveChangesAsync();
     }
 }

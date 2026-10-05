@@ -12,6 +12,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
 
+    public DbSet<OutsideCodeIntro> OutsideCodeIntros => Set<OutsideCodeIntro>();
+    public DbSet<AwayFromKeyboardItem> AwayFromKeyboardItems => Set<AwayFromKeyboardItem>();
+    public DbSet<MovieTake> MovieTakes => Set<MovieTake>();
+    public DbSet<MusicArtist> MusicArtists => Set<MusicArtist>();
+    public DbSet<PodcastChannel> PodcastChannels => Set<PodcastChannel>();
+    public DbSet<OutsideCodeBook> OutsideCodeBooks => Set<OutsideCodeBook>();
+    public DbSet<LifeInspiration> LifeInspirations => Set<LifeInspiration>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Project>()
