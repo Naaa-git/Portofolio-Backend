@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: portfolio-api
+    static_configs:
+      # The backend runs on the host machine (dotnet run), not inside this
+      # compose network — host.docker.internal is Docker's bridge back to the
+      # host, standard for "containerized monitoring, app running locally".
+      - targets: ["host.docker.internal:5229"]

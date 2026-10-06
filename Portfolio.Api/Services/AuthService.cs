@@ -49,7 +49,7 @@ public class AuthService(
 
         if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
         {
-            await RegisterFailedAttemptAsync(user.Username);
+            await RegisterFailedAttemptAsync(user.Username, "password");
             return null;
         }
 
@@ -112,7 +112,7 @@ public class AuthService(
 
         if (user.TotpSecret is null || !totpService.ValidateCode(user.TotpSecret, dto.Code))
         {
-            await RegisterFailedAttemptAsync(username);
+            await RegisterFailedAttemptAsync(username, "totp");
             return null;
         }
 
@@ -139,7 +139,7 @@ public class AuthService(
 
         if (!codeIsValid)
         {
-            await RegisterFailedAttemptAsync(username);
+            await RegisterFailedAttemptAsync(username, "email_otp");
             return null;
         }
 
@@ -236,13 +236,16 @@ public class AuthService(
     private static bool IsLockedOut(AdminUser user) =>
         user.LockedUntilUtc is not null && user.LockedUntilUtc > DateTime.UtcNow;
 
-    private async Task RegisterFailedAttemptAsync(string username)
+    private async Task RegisterFailedAttemptAsync(string username, string stage)
     {
+        AppMetrics.FailedLoginAttempts.WithLabels(stage).Inc();
+
         var attempts = await repo.IncrementFailedLoginAttemptsAsync(username);
         var lockoutDuration = GetLockoutDuration(attempts);
         if (lockoutDuration > TimeSpan.Zero)
         {
             await repo.SetLockoutAsync(username, DateTime.UtcNow.Add(lockoutDuration));
+            AppMetrics.AccountLockouts.Inc();
         }
     }
 

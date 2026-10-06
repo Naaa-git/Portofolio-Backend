@@ -9,8 +9,38 @@ using Microsoft.IdentityModel.Tokens;
 using Portfolio.Api.Data;
 using Portfolio.Api.Repositories;
 using Portfolio.Api.Services;
+using Prometheus;
+using Serilog;
+using Serilog.Sinks.Grafana.Loki;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Structured logging: every log line is a JSON object with named properties
+// (not free-form text), which is what makes it filterable/queryable once it
+// lands in Loki instead of just being grep-able. Also quiets EF Core's
+// per-query SQL noise down to Warning, which was drowning out everything else.
+builder.Host.UseSerilog((context, services, loggerConfig) =>
+{
+    var lokiUrl = context.Configuration["Loki:Url"];
+
+    loggerConfig
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Warning)
+        .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("Application", "Portfolio.Api")
+        .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
+        .WriteTo.Console();
+
+    if (!string.IsNullOrEmpty(lokiUrl))
+    {
+        loggerConfig.WriteTo.GrafanaLoki(lokiUrl, labels:
+        [
+            new LokiLabel { Key = "app", Value = "portfolio-api" },
+            new LokiLabel { Key = "env", Value = context.HostingEnvironment.EnvironmentName },
+        ]);
+    }
+});
 
 builder.Services.AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
@@ -44,6 +74,11 @@ builder.Services.AddScoped<AuditSaveChangesInterceptor>();
 builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
         .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
+
+// Hit by infra (load balancer / uptime monitor), not by the frontend — reports
+// whether the app can actually reach Postgres, not just "process is running".
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("Default")!, name: "postgres");
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<GoogleOptions>(builder.Configuration.GetSection(GoogleOptions.SectionName));
@@ -148,12 +183,27 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// One structured log line per request (method, path, status code, elapsed ms) —
+// this is what actually gets searched/filtered in Loki day-to-day, far more
+// than the individual EF Core query logs.
+app.UseSerilogRequestLogging();
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors("Frontend");
 app.UseRateLimiter();
+
+// Must wrap routing so every request (including 401s) gets counted —
+// placed after auth middleware would miss rejected requests entirely.
+app.UseHttpMetrics();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+app.MapMetrics(); // GET /metrics — scraped by Prometheus, not meant for browsers
+app.MapHealthChecks("/health");
+
+AppMetrics.EnsureRegistered();
 
 app.Run();
