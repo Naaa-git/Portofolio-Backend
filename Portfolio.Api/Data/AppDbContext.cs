@@ -11,6 +11,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Experience> Experiences => Set<Experience>();
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     public DbSet<OutsideCodeIntro> OutsideCodeIntros => Set<OutsideCodeIntro>();
     public DbSet<AwayFromKeyboardItem> AwayFromKeyboardItems => Set<AwayFromKeyboardItem>();
