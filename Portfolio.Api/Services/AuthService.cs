@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Portfolio.Api.Models.Dto;
 using Portfolio.Api.Models.Entities;
+using Portfolio.Api.Models.Events;
 using Portfolio.Api.Repositories;
 using QRCoder;
 
@@ -17,7 +18,7 @@ namespace Portfolio.Api.Services;
 public class AuthService(
     IAdminUserRepository repo,
     ITotpService totpService,
-    IEmailSender emailSender,
+    IOtpEmailProducer otpEmailProducer,
     IOptions<JwtOptions> jwtOptions,
     IOptions<GoogleOptions> googleOptions,
     IOptions<MicrosoftOptions> microsoftOptions,
@@ -198,12 +199,12 @@ public class AuthService(
 
         try
         {
-            await emailSender.SendOtpCodeAsync(user.Email, code);
+            await otpEmailProducer.PublishAsync(new OtpEmailMessage(user.Email, code));
         }
-        catch (HttpRequestException)
+        catch (Exception)
         {
-            // Don't hand out a pending token for a code that was never actually
-            // delivered — that would leave the user stuck with no way forward.
+            // Broker unreachable — symmetric to the old "Brevo unreachable" case.
+            // Actual delivery (Brevo) is now handled async by OtpEmailConsumer.
             return null;
         }
 

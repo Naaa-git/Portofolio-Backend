@@ -85,6 +85,9 @@ builder.Services.Configure<GoogleOptions>(builder.Configuration.GetSection(Googl
 builder.Services.Configure<MicrosoftOptions>(builder.Configuration.GetSection(MicrosoftOptions.SectionName));
 builder.Services.Configure<BrevoOptions>(builder.Configuration.GetSection(BrevoOptions.SectionName));
 builder.Services.Configure<OpenSearchOptions>(builder.Configuration.GetSection(OpenSearchOptions.SectionName));
+builder.Services.Configure<KafkaOptions>(builder.Configuration.GetSection(KafkaOptions.SectionName));
+builder.Services.AddSingleton<IOtpEmailProducer, KafkaOtpEmailProducer>();
+builder.Services.AddHostedService<OtpEmailConsumer>();
 
 builder.Services.AddSingleton(new ConfigurationManager<OpenIdConnectConfiguration>(
     "https://login.microsoftonline.com/consumers/v2.0/.well-known/openid-configuration",

@@ -91,6 +91,33 @@
           "refId": "A"
         }
       ]
+    },
+    {
+      "id": 7,
+      "title": "OTP emails sent vs failed (per 5m)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "failed" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "increase(portfolio_otp_emails_sent_total[5m])",
+          "legendFormat": "sent",
+          "refId": "A"
+        },
+        {
+          "expr": "increase(portfolio_otp_email_failures_total[5m])",
+          "legendFormat": "failed",
+          "refId": "B"
+        }
+      ]
     }
   ]
 }

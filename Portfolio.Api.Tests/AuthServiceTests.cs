@@ -10,11 +10,11 @@ namespace Portfolio.Api.Tests;
 
 public class AuthServiceTests
 {
-    private static AuthService CreateAuthService(FakeAdminUserRepository repo, FakeEmailSender emailSender) =>
+    private static AuthService CreateAuthService(FakeAdminUserRepository repo, FakeOtpEmailProducer otpEmailProducer) =>
         new(
             repo,
             new TotpService(),
-            emailSender,
+            otpEmailProducer,
             Options.Create(new JwtOptions
             {
                 Issuer = "test-issuer",
@@ -47,7 +47,7 @@ public class AuthServiceTests
     {
         var repo = new FakeAdminUserRepository();
         repo.Add(NewUser());
-        var service = CreateAuthService(repo, new FakeEmailSender());
+        var service = CreateAuthService(repo, new FakeOtpEmailProducer());
 
         var result = await service.ChangePasswordAsync("admin", new ChangePasswordRequestDto("ChangeMe123!", weakNewPassword));
 
@@ -59,7 +59,7 @@ public class AuthServiceTests
     {
         var repo = new FakeAdminUserRepository();
         repo.Add(NewUser());
-        var service = CreateAuthService(repo, new FakeEmailSender());
+        var service = CreateAuthService(repo, new FakeOtpEmailProducer());
 
         var result = await service.ChangePasswordAsync("admin", new ChangePasswordRequestDto("TotallyWrongPassword1", "BrandNewPassword1"));
 
@@ -71,7 +71,7 @@ public class AuthServiceTests
     {
         var repo = new FakeAdminUserRepository();
         repo.Add(NewUser());
-        var service = CreateAuthService(repo, new FakeEmailSender());
+        var service = CreateAuthService(repo, new FakeOtpEmailProducer());
 
         var result = await service.ChangePasswordAsync("admin", new ChangePasswordRequestDto("ChangeMe123!", "BrandNewPassword1"));
 
@@ -88,7 +88,7 @@ public class AuthServiceTests
     {
         var repo = new FakeAdminUserRepository();
         repo.Add(NewUser());
-        var service = CreateAuthService(repo, new FakeEmailSender());
+        var service = CreateAuthService(repo, new FakeOtpEmailProducer());
 
         await service.LoginAsync(new LoginRequestDto("admin", "wrong-password"));
         await service.LoginAsync(new LoginRequestDto("admin", "wrong-password"));
@@ -104,7 +104,7 @@ public class AuthServiceTests
     {
         var repo = new FakeAdminUserRepository();
         repo.Add(NewUser());
-        var service = CreateAuthService(repo, new FakeEmailSender());
+        var service = CreateAuthService(repo, new FakeOtpEmailProducer());
 
         await service.LoginAsync(new LoginRequestDto("admin", "wrong-password"));
         await service.LoginAsync(new LoginRequestDto("admin", "wrong-password"));
@@ -124,7 +124,7 @@ public class AuthServiceTests
     {
         var repo = new FakeAdminUserRepository();
         repo.Add(NewUser());
-        var service = CreateAuthService(repo, new FakeEmailSender());
+        var service = CreateAuthService(repo, new FakeOtpEmailProducer());
 
         await service.LoginAsync(new LoginRequestDto("admin", "wrong-password"));
         await service.LoginAsync(new LoginRequestDto("admin", "ChangeMe123!")); // correct -> resets
@@ -137,7 +137,7 @@ public class AuthServiceTests
     public async Task LoginAsync_UnknownUsername_ReturnsNullWithoutThrowing()
     {
         var repo = new FakeAdminUserRepository();
-        var service = CreateAuthService(repo, new FakeEmailSender());
+        var service = CreateAuthService(repo, new FakeOtpEmailProducer());
 
         var result = await service.LoginAsync(new LoginRequestDto("nobody", "whatever"));
 
@@ -151,8 +151,8 @@ public class AuthServiceTests
     {
         var repo = new FakeAdminUserRepository();
         repo.Add(NewUser());
-        var emailSender = new FakeEmailSender();
-        var service = CreateAuthService(repo, emailSender);
+        var otpEmailProducer = new FakeOtpEmailProducer();
+        var service = CreateAuthService(repo, otpEmailProducer);
 
         var result = await service.LoginAsync(new LoginRequestDto("admin", "ChangeMe123!"));
 
@@ -160,8 +160,8 @@ public class AuthServiceTests
         Assert.Equal(LoginChallenge.EmailOtp, result!.Challenge);
         Assert.NotNull(result.PendingToken);
         Assert.Null(result.AccessToken); // not logged in yet — still needs the OTP step
-        Assert.Equal("admin@example.com", emailSender.LastSentTo);
-        Assert.NotNull(emailSender.LastSentCode);
+        Assert.Equal("admin@example.com", otpEmailProducer.LastSentTo);
+        Assert.NotNull(otpEmailProducer.LastSentCode);
     }
 
     [Fact]
@@ -169,11 +169,11 @@ public class AuthServiceTests
     {
         var repo = new FakeAdminUserRepository();
         repo.Add(NewUser());
-        var emailSender = new FakeEmailSender();
-        var service = CreateAuthService(repo, emailSender);
+        var otpEmailProducer = new FakeOtpEmailProducer();
+        var service = CreateAuthService(repo, otpEmailProducer);
 
         var login = await service.LoginAsync(new LoginRequestDto("admin", "ChangeMe123!"));
-        var verify = await service.VerifyEmailOtpLoginAsync(new VerifyEmailOtpLoginRequestDto(login!.PendingToken!, emailSender.LastSentCode!));
+        var verify = await service.VerifyEmailOtpLoginAsync(new VerifyEmailOtpLoginRequestDto(login!.PendingToken!, otpEmailProducer.LastSentCode!));
 
         Assert.NotNull(verify);
         Assert.Equal(LoginChallenge.None, verify!.Challenge);
@@ -185,8 +185,8 @@ public class AuthServiceTests
     {
         var repo = new FakeAdminUserRepository();
         repo.Add(NewUser());
-        var emailSender = new FakeEmailSender();
-        var service = CreateAuthService(repo, emailSender);
+        var otpEmailProducer = new FakeOtpEmailProducer();
+        var service = CreateAuthService(repo, otpEmailProducer);
 
         var login = await service.LoginAsync(new LoginRequestDto("admin", "ChangeMe123!"));
         var verify = await service.VerifyEmailOtpLoginAsync(new VerifyEmailOtpLoginRequestDto(login!.PendingToken!, "000000"));
@@ -199,11 +199,11 @@ public class AuthServiceTests
     {
         var repo = new FakeAdminUserRepository();
         repo.Add(NewUser());
-        var emailSender = new FakeEmailSender();
-        var service = CreateAuthService(repo, emailSender);
+        var otpEmailProducer = new FakeOtpEmailProducer();
+        var service = CreateAuthService(repo, otpEmailProducer);
 
         var login = await service.LoginAsync(new LoginRequestDto("admin", "ChangeMe123!"));
-        var code = emailSender.LastSentCode!;
+        var code = otpEmailProducer.LastSentCode!;
 
         var first = await service.VerifyEmailOtpLoginAsync(new VerifyEmailOtpLoginRequestDto(login!.PendingToken!, code));
         Assert.NotNull(first); // consumes it
@@ -224,7 +224,7 @@ public class AuthServiceTests
     {
         var repo = new FakeAdminUserRepository();
         repo.Add(NewUser());
-        var service = CreateAuthService(repo, new FakeEmailSender());
+        var service = CreateAuthService(repo, new FakeOtpEmailProducer());
 
         var login = await service.LoginAsync(new LoginRequestDto("admin", "ChangeMe123!"));
         Assert.Equal(LoginChallenge.EmailOtp, login!.Challenge);

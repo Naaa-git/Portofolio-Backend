@@ -19,6 +19,14 @@ public static class AppMetrics
         "portfolio_account_lockouts_total",
         "Number of times an account got locked out after too many failed attempts.");
 
+    public static readonly Counter OtpEmailsSent = Metrics.CreateCounter(
+        "portfolio_otp_emails_sent_total",
+        "Number of OTP emails successfully handed off to Brevo by the Kafka consumer.");
+
+    public static readonly Counter OtpEmailFailures = Metrics.CreateCounter(
+        "portfolio_otp_email_failures_total",
+        "Number of OTP emails that failed to send via Brevo (not retried — OTP codes expire in minutes).");
+
     /// <summary>
     /// Forces every series to exist with an initial value of 0 from boot,
     /// instead of only appearing the first time something actually increments
@@ -33,5 +41,7 @@ public static class AppMetrics
         FailedLoginAttempts.WithLabels("password").Inc(0);
         FailedLoginAttempts.WithLabels("totp").Inc(0);
         FailedLoginAttempts.WithLabels("email_otp").Inc(0);
+        OtpEmailsSent.Inc(0);
+        OtpEmailFailures.Inc(0);
     }
 }
