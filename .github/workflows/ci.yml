@@ -7,7 +7,10 @@ on:
     branches: [main]
 
 jobs:
-  build-and-test:
+  # Stage 1 (Fowler's "commit build"): fast, uses fakes (FakeEmailSender,
+  # FakeOtpEmailProducer, etc.), no external services. Target under 10
+  # minutes — this is what gives fast feedback on every push.
+  unit-tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,3 +38,85 @@ jobs:
 
       - name: Test
         run: dotnet test --no-build --configuration Release
+
+  # Stage 2 (Fowler's "secondary build"): slower, hits real Postgres and
+  # OpenSearch — the two dependencies Program.cs touches unconditionally
+  # before the server can accept any request (DB migration + full reindex).
+  # Unit tests above run entirely against fakes and never actually start
+  # the app, so they can't catch a broken startup path on their own; this
+  # proves the real published app boots against real services and serves
+  # a request. Only runs if the fast stage already passed.
+  smoke-test:
+    needs: unit-tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: portofolio
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      opensearch:
+        image: opensearchproject/opensearch:2.19.0
+        env:
+          discovery.type: single-node
+          DISABLE_SECURITY_PLUGIN: "true"
+          DISABLE_INSTALL_DEMO_CONFIG: "true"
+          OPENSEARCH_JAVA_OPTS: "-Xms256m -Xmx256m"
+        ports:
+          - 9200:9200
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      # Kafka is deliberately not spun up here: confirmed locally that the
+      # app stays up and /health still responds without a broker (librdkafka
+      # just retries in the background) — it isn't a startup dependency, so
+      # adding it would only slow this stage down for no extra coverage.
+      - name: Smoke test the built server
+        working-directory: Portfolio.Api
+        env:
+          ConnectionStrings__Default: "Host=localhost;Port=5432;Database=portofolio;Username=postgres;Password=postgres"
+          Jwt__SigningKey: "ci-smoke-test-signing-key-at-least-32-characters"
+          OpenSearch__Url: "http://localhost:9200"
+        run: |
+          dotnet run --no-build --configuration Release &
+          SERVER_PID=$!
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5229/health > /dev/null; then
+              echo "Server responded successfully."
+              kill $SERVER_PID
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Server did not respond in time."
+          kill $SERVER_PID
+          exit 1
