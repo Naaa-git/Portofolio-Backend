@@ -1,0 +1,10 @@
+namespace Portfolio.Api.Services;
+
+public class BrevoOptions
+{
+    public const string SectionName = "Brevo";
+
+    public string ApiKey { get; set; } = default!;
+    public string SenderEmail { get; set; } = default!;
+    public string SenderName { get; set; } = "Portfolio Admin";
+}

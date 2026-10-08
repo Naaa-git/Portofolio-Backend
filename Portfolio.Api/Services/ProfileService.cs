@@ -1,3 +1,4 @@
+using Portfolio.Api.Data;
 using Portfolio.Api.Models.Dto;
 using Portfolio.Api.Models.Entities;
 using Portfolio.Api.Repositories;
@@ -6,13 +7,19 @@ namespace Portfolio.Api.Services;
 
 public class ProfileService(IProfileRepository repo) : IProfileService
 {
-    public async Task<ProfileDto?> GetAsync()
+    public async Task<ProfileDto?> GetAsync(string lang)
     {
         var profile = await repo.GetAsync();
-        return profile is null ? null : ToDto(profile);
+        return profile is null ? null : ToDto(profile, lang);
     }
 
-    public async Task<ProfileDto> UpsertAsync(ProfileUpsertDto dto)
+    public async Task<ProfileAdminDto?> GetAdminAsync()
+    {
+        var profile = await repo.GetAsync();
+        return profile is null ? null : ToAdminDto(profile);
+    }
+
+    public async Task<ProfileAdminDto> UpsertAsync(ProfileUpsertDto dto)
     {
         var entity = new Profile
         {
@@ -30,10 +37,15 @@ public class ProfileService(IProfileRepository repo) : IProfileService
             CvUrl = dto.CvUrl,
         };
         var saved = await repo.UpsertAsync(entity);
-        return ToDto(saved);
+        return ToAdminDto(saved);
     }
 
-    private static ProfileDto ToDto(Profile p) => new(
+    private static ProfileDto ToDto(Profile p, string lang) => new(
+        p.Name, p.ShortName, p.Role.Resolve(lang), p.RoleAlternatives.ResolveList(lang),
+        p.Tagline.Resolve(lang), p.Bio.Resolve(lang), p.BioExtended.Resolve(lang),
+        p.AvailableForWork, p.Email, p.Location, p.AvatarUrl, p.CvUrl);
+
+    private static ProfileAdminDto ToAdminDto(Profile p) => new(
         p.Name, p.ShortName, p.Role, p.RoleAlternatives, p.Tagline, p.Bio, p.BioExtended,
         p.AvailableForWork, p.Email, p.Location, p.AvatarUrl, p.CvUrl);
 }

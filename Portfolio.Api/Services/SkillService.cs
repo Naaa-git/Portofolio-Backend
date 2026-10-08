@@ -1,3 +1,4 @@
+using Portfolio.Api.Data;
 using Portfolio.Api.Models.Dto;
 using Portfolio.Api.Models.Entities;
 using Portfolio.Api.Repositories;
@@ -6,14 +7,17 @@ namespace Portfolio.Api.Services;
 
 public class SkillService(ISkillRepository repo) : ISkillService
 {
-    public async Task<List<SkillDto>> GetAllAsync() =>
-        (await repo.GetAllAsync()).Select(ToDto).ToList();
+    public async Task<List<SkillDto>> GetAllAsync(string lang) =>
+        (await repo.GetAllAsync()).Select(s => ToDto(s, lang)).ToList();
 
-    public async Task<SkillDto> CreateAsync(SkillUpsertDto dto)
+    public async Task<List<SkillAdminDto>> GetAllAdminAsync() =>
+        (await repo.GetAllAsync()).Select(ToAdminDto).ToList();
+
+    public async Task<SkillAdminDto> CreateAsync(SkillUpsertDto dto)
     {
         var entity = new Skill { Category = dto.Category, Items = dto.Items, SortOrder = dto.SortOrder };
         var created = await repo.AddAsync(entity);
-        return ToDto(created);
+        return ToAdminDto(created);
     }
 
     public Task<bool> UpdateAsync(int id, SkillUpsertDto dto) =>
@@ -21,5 +25,7 @@ public class SkillService(ISkillRepository repo) : ISkillService
 
     public Task<bool> DeleteAsync(int id) => repo.DeleteAsync(id);
 
-    private static SkillDto ToDto(Skill s) => new(s.Id, s.Category, s.Items, s.SortOrder);
+    private static SkillDto ToDto(Skill s, string lang) => new(s.Id, s.Category.Resolve(lang), s.Items, s.SortOrder);
+
+    private static SkillAdminDto ToAdminDto(Skill s) => new(s.Id, s.Category, s.Items, s.SortOrder);
 }

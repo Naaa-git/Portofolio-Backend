@@ -7,5 +7,16 @@
   },
   "Cors": {
     "AllowedOrigins": [ "http://localhost:3000" ]
+  },
+  "Google": {
+    "ClientId": "replace-with-your-oauth-client-id.apps.googleusercontent.com"
+  },
+  "Microsoft": {
+    "ClientId": "replace-with-your-azure-app-registration-client-id"
+  },
+  "Brevo": {
+    "ApiKey": "replace-with-your-brevo-api-key",
+    "SenderEmail": "replace-with-your-verified-sender-email",
+    "SenderName": "Portfolio Admin"
   }
 }

@@ -1,0 +1,121 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: security-alerts
+    folder: Portfolio Alerts
+    interval: 1m
+    rules:
+      # Fires on even a single lockout — this is a deliberately low bar: a
+      # lockout only happens after 3+ wrong attempts on an account (see
+      # GetLockoutDuration), so it's already a meaningful signal by the time
+      # it fires once, not routine noise.
+      - uid: account-lockout-alert
+        title: Account Lockout Detected
+        condition: C
+        for: 0s
+        labels:
+          severity: warning
+        annotations:
+          summary: "An account was locked out after repeated failed login attempts in the last 5 minutes."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: sum(increase(portfolio_account_lockouts_total[5m]))
+              instant: true
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+              refId: C
+        noDataState: OK
+        execErrState: Error
+
+      # Fires on even a single OTP email failure — unlike a generic message
+      # queue, OTP codes expire in minutes, so there's no point retrying
+      # delivery later (see OtpEmailConsumer). This alert is the only way a
+      # failure here becomes visible at all, since the login request itself
+      # already succeeded by the time the Kafka consumer tries Brevo.
+      - uid: otp-email-failure-alert
+        title: OTP Email Delivery Failure
+        condition: C
+        for: 0s
+        labels:
+          severity: warning
+        annotations:
+          summary: "An OTP email failed to send via Brevo in the last 5 minutes — the affected user never received their login code."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: sum(increase(portfolio_otp_email_failures_total[5m]))
+              instant: true
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+              refId: C
+        noDataState: OK
+        execErrState: Error
+
+      # A higher-level signal independent of lockout state — catches a
+      # distributed/rotating-IP attack pattern spread across many accounts,
+      # where no single account necessarily crosses the lockout threshold.
+      - uid: high-failed-login-rate-alert
+        title: High Failed Login Rate
+        condition: C
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "More than 10 failed login attempts in the last 5 minutes — possible brute-force attempt."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus-ds
+            model:
+              expr: sum(increase(portfolio_failed_login_attempts_total[5m]))
+              instant: true
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [10]
+              refId: C
+        noDataState: OK
+        execErrState: Error
