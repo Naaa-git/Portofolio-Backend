@@ -27,6 +27,12 @@ public static class AppMetrics
         "portfolio_otp_email_failures_total",
         "Number of OTP emails that failed to send via Brevo (not retried — OTP codes expire in minutes).");
 
+    // Gauge, not Counter — lag goes up AND down as the consumer catches up,
+    // unlike the cumulative counters above.
+    public static readonly Gauge OtpConsumerLag = Metrics.CreateGauge(
+        "portfolio_otp_consumer_lag",
+        "Number of messages in the send-otp-email topic not yet processed by the consumer.");
+
     /// <summary>
     /// Forces every series to exist with an initial value of 0 from boot,
     /// instead of only appearing the first time something actually increments

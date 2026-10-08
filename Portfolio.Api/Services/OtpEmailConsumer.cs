@@ -8,6 +8,7 @@ namespace Portfolio.Api.Services;
 public class OtpEmailConsumer(
     IOptions<KafkaOptions> options,
     IServiceScopeFactory scopeFactory,
+    IOtpEmailProducer otpEmailProducer,
     ILogger<OtpEmailConsumer> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -45,9 +46,24 @@ public class OtpEmailConsumer(
                 // yang penting kegagalan ini kelihatan lewat metric, bukan hilang diam-diam.
                 logger.LogError(ex, "Gagal kirim OTP email ke {Email}", message.Email);
                 AppMetrics.OtpEmailFailures.Inc();
+
+                try
+                {
+                    await otpEmailProducer.PublishToDlqAsync(new OtpEmailDlqMessage(message.Email, ex.Message, DateTime.UtcNow));
+                }
+                catch (Exception dlqEx)
+                {
+                    // Kalau publish ke DLQ sendiri gagal (misal broker lagi down total),
+                    // jangan sampai ini crash consumer-nya juga — cukup dicatat.
+                    logger.LogError(dlqEx, "Gagal publish ke DLQ untuk {Email}", message.Email);
+                }
             }
 
             consumer.Commit(result);
+
+            var watermark = consumer.QueryWatermarkOffsets(result.TopicPartition, TimeSpan.FromSeconds(5));
+            var lag = watermark.High.Value - consumer.Position(result.TopicPartition).Value;
+            AppMetrics.OtpConsumerLag.Set(lag);
         }
     }
 }

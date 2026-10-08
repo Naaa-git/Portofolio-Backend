@@ -15,4 +15,6 @@ public class FakeOtpEmailProducer : IOtpEmailProducer
         LastSentCode = message.Code;
         return Task.CompletedTask;
     }
+
+    public Task PublishToDlqAsync(OtpEmailDlqMessage message) => Task.CompletedTask;
 }

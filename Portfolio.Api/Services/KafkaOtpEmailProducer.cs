@@ -9,10 +9,12 @@ public class KafkaOtpEmailProducer : IOtpEmailProducer, IDisposable
 {
     private readonly IProducer<Null, string> _producer;
     private readonly string _topic;
+    private readonly string _dlqTopic;
 
     public KafkaOtpEmailProducer(IOptions<KafkaOptions> options)
     {
         _topic = options.Value.OtpEmailTopic;
+        _dlqTopic = options.Value.OtpEmailDlqTopic;
         _producer = new ProducerBuilder<Null, string>(new ProducerConfig
         {
             BootstrapServers = options.Value.BootstrapServers,
@@ -23,6 +25,12 @@ public class KafkaOtpEmailProducer : IOtpEmailProducer, IDisposable
     {
         var json = JsonSerializer.Serialize(message);
         await _producer.ProduceAsync(_topic, new Message<Null, string> { Value = json });
+    }
+
+    public async Task PublishToDlqAsync(OtpEmailDlqMessage message)
+    {
+        var json = JsonSerializer.Serialize(message);
+        await _producer.ProduceAsync(_dlqTopic, new Message<Null, string> { Value = json });
     }
 
     public void Dispose() => _producer.Dispose();
