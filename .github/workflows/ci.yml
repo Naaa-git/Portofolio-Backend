@@ -106,6 +106,9 @@ jobs:
           ConnectionStrings__Default: "Host=localhost;Port=5432;Database=portofolio;Username=postgres;Password=postgres"
           Jwt__SigningKey: "ci-smoke-test-signing-key-at-least-32-characters"
           OpenSearch__Url: "http://localhost:9200"
+          SeedAdmin__Username: "ci-admin"
+          SeedAdmin__Password: "ci-smoke-test-password"
+          SeedAdmin__Email: "ci@example.com"
         run: |
           dotnet run --no-build --configuration Release &
           SERVER_PID=$!

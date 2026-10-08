@@ -9,16 +9,16 @@ namespace Portfolio.Api.Data;
 /// </summary>
 public static class DbSeeder
 {
-    public static async Task SeedAsync(AppDbContext db)
+    public static async Task SeedAsync(AppDbContext db, SeedAdminOptions seedAdmin)
     {
         if (!db.AdminUsers.Any())
         {
             db.AdminUsers.Add(new AdminUser
             {
-                Username = "admin",
-                // Default password: "ChangeMe123!" — change it via the admin UI after first login.
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("ChangeMe123!"),
-                Email = "aldimusthofa02@gmail.com",
+                Username = seedAdmin.Username,
+                // Change the password via the admin UI after first login.
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(seedAdmin.Password),
+                Email = seedAdmin.Email,
             });
         }
 
