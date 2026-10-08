@@ -123,3 +123,38 @@ jobs:
           echo "Server did not respond in time."
           kill $SERVER_PID
           exit 1
+
+  # Stage 3: publish the tested image. Only runs on an actual push to main
+  # (a merged PR), never on a pull_request event — there's no reason to
+  # publish an image for code that hasn't been merged yet. The same image
+  # that passed both stages above is what gets deployed, not a rebuild.
+  publish:
+    needs: smoke-test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Two tags: `latest` always points to the most recent main, and the
+      # commit SHA gives every build a unique, traceable, immutable tag —
+      # useful for rolling back to a specific previous version later.
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Portfolio.Api
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/portfolio-api:latest
+            ghcr.io/${{ github.repository_owner }}/portfolio-api:${{ github.sha }}
