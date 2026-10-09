@@ -43,7 +43,7 @@ services:
     image: prom/prometheus:v3.0.1
     restart: unless-stopped
     volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus.prod.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
 
   loki:

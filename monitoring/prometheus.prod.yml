@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: portfolio-api
+    static_configs:
+      # Unlike local dev, the api here runs as a container on this same
+      # compose network — reach it by service name over Docker's internal
+      # network, not host.docker.internal (which would mean "leave Docker
+      # and go find the host", the wrong direction since there's no host
+      # process to find here).
+      - targets: ["api:8080"]
