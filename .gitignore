@@ -4,6 +4,12 @@ obj/
 appsettings.Development.json
 appsettings.*.local.json
 
+# Production env files — real values only ever exist on the VPS or in
+# GitHub Secrets, never committed. *.env.example files ARE committed.
+infra.env
+api.env
+frontend.env
+
 # Local image upload mock (dev-only files, not source)
 Portfolio.Api/wwwroot/uploads/*
 !Portfolio.Api/wwwroot/uploads/.gitkeep

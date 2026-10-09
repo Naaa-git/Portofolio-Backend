@@ -159,3 +159,85 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-api:${{ github.ref_name }}
             ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-api:latest
+
+  # Stage 4: deploy. Writes api.env fresh from GitHub Secrets every time —
+  # the VPS copy is never hand-edited, GitHub Secrets is the only source of
+  # truth, so there's no drift between "what we think is configured" and
+  # what's actually running. Only touches the `api` service — infra
+  # (postgres, kafka, opensearch, grafana, etc.) and `frontend` are untouched,
+  # so this can't race with the frontend repo's own deploy.
+  deploy:
+    needs: publish
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # docker-compose.prod.yml and monitoring/ are plain text, no secrets —
+      # safe to sync automatically every deploy. infra.env is NOT included
+      # here on purpose: it holds real secrets (Postgres password, Grafana
+      # SMTP creds) that backend has no reason to own or duplicate as its
+      # own GitHub Secrets — that one stays manual, set up once.
+      - name: Sync compose file and monitoring config to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: deployer
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          source: "docker-compose.prod.yml,monitoring/"
+          target: "~/portfolio/"
+          strip_components: 0
+
+      - name: Write api.env and restart the api service
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: deployer
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          script: |
+            cat > ~/portfolio/api.env << 'ENVEOF'
+            ConnectionStrings__Default=Host=postgres;Port=5432;Database=portofolio;Username=postgres;Password=${{ secrets.POSTGRES_PASSWORD }}
+            Jwt__SigningKey=${{ secrets.JWT_SIGNING_KEY }}
+            Jwt__Issuer=portofolio-api
+            Jwt__Audience=portofolio-admin
+            Google__ClientId=${{ secrets.GOOGLE_CLIENT_ID }}
+            Microsoft__ClientId=${{ secrets.MICROSOFT_CLIENT_ID }}
+            Brevo__ApiKey=${{ secrets.BREVO_API_KEY }}
+            Brevo__SenderEmail=${{ secrets.BREVO_SENDER_EMAIL }}
+            Brevo__SenderName=Portfolio Admin
+            SeedAdmin__Username=${{ secrets.SEED_ADMIN_USERNAME }}
+            SeedAdmin__Password=${{ secrets.SEED_ADMIN_PASSWORD }}
+            SeedAdmin__Email=${{ secrets.SEED_ADMIN_EMAIL }}
+            OpenSearch__Url=http://opensearch:9200
+            Kafka__BootstrapServers=kafka:9092
+            Kafka__OtpEmailTopic=send-otp-email
+            Cors__AllowedOrigins__0=${{ secrets.CORS_ALLOWED_ORIGIN }}
+            Loki__Url=http://loki:3100
+            ENVEOF
+            cd ~/portfolio
+            export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            export API_VERSION=${{ github.ref_name }}
+            docker compose -f docker-compose.prod.yml pull api
+            docker compose -f docker-compose.prod.yml up -d api
+
+      # Deploy "succeeding" above just means the restart command ran without
+      # erroring — it doesn't prove the new container actually came up
+      # healthy. This is the health check we flagged as missing earlier.
+      - name: Verify the deployment is healthy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: deployer
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          script: |
+            for i in $(seq 1 30); do
+              if curl -sf http://localhost:5229/health > /dev/null; then
+                echo "Deployment healthy."
+                exit 0
+              fi
+              sleep 2
+            done
+            echo "Deployment did not become healthy in time."
+            exit 1

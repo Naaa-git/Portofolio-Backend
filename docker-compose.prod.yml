@@ -1,0 +1,101 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file: infra.env
+    environment:
+      POSTGRES_DB: portofolio
+      POSTGRES_USER: postgres
+    # No `ports:` — only reachable by other containers on this compose
+    # network (service name `postgres`), never from the public internet.
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  opensearch:
+    image: opensearchproject/opensearch:2.19.0
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - DISABLE_SECURITY_PLUGIN=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms256m -Xmx256m"
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+
+  kafka:
+    image: apache/kafka:3.8.0
+    restart: unless-stopped
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_HEAP_OPTS: "-Xmx256m -Xms256m"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+
+  prometheus:
+    image: prom/prometheus:v3.0.1
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+
+  loki:
+    image: grafana/loki:3.3.2
+    restart: unless-stopped
+    command: -config.file=/etc/loki/loki-config.yml
+    volumes:
+      - loki_data:/loki
+      - ./monitoring/loki-config.yml:/etc/loki/loki-config.yml
+
+  # Mailpit dropped entirely — production uses real Brevo, nothing to catch
+  # locally.
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    restart: unless-stopped
+    env_file: infra.env
+    environment:
+      - GF_SMTP_ENABLED=true
+      # Real SMTP now (Brevo), not mailpit — host/creds come from infra.env.
+    ports:
+      - "3030:3000" # kept reachable for now; moves behind the reverse proxy in Fase 5
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana-provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+      - loki
+
+  api:
+    image: ${DOCKERHUB_USERNAME}/portfolio-api:${API_VERSION}
+    restart: unless-stopped
+    env_file: api.env
+    ports:
+      - "5229:8080"
+    depends_on:
+      - postgres
+      - opensearch
+
+  frontend:
+    image: ${DOCKERHUB_USERNAME}/portfolio-frontend:${FRONTEND_VERSION}
+    restart: unless-stopped
+    env_file: frontend.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  opensearch_data:
+  kafka_data:
+  prometheus_data:
+  loki_data:
+  grafana_data:
