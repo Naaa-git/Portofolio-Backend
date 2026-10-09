@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
     branches: [main]
 
@@ -124,13 +125,14 @@ jobs:
           kill $SERVER_PID
           exit 1
 
-  # Stage 3: publish the tested image. Only runs on an actual push to main
-  # (a merged PR), never on a pull_request event — there's no reason to
-  # publish an image for code that hasn't been merged yet. The same image
-  # that passed both stages above is what gets deployed, not a rebuild.
+  # Stage 3: publish the tested image. Only runs when a `v*` tag is pushed —
+  # a deliberate release action, not every merge to main. This is Continuous
+  # Delivery (always deployable, a human decides when) rather than full
+  # Continuous Deployment (every merge ships automatically) — chosen so
+  # releases can be held, batched, and timed on purpose.
   publish:
     needs: smoke-test
-    if: github.event_name == 'push'
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
 
     steps:
@@ -143,14 +145,17 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Two tags: `latest` always points to the most recent main, and the
-      # commit SHA gives every build a unique, traceable, immutable tag —
-      # useful for rolling back to a specific previous version later.
+      # Tagged with the release version itself (e.g. v1.2.0) — human-
+      # readable and exactly what the VPS's docker-compose.yml pins to, so
+      # "what's running in production" is always an explicit, visible
+      # version, not an implicit "whatever `latest` happened to be". Also
+      # tagged `latest` for convenience (local testing, quick pulls) — the
+      # VPS itself never relies on it.
       - name: Build and push image
         uses: docker/build-push-action@v5
         with:
           context: ./Portfolio.Api
           push: true
           tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-api:${{ github.ref_name }}
             ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-api:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-api:${{ github.sha }}
