@@ -190,6 +190,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Rollback mechanism test only — a visible, harmless marker (response
+// header) to confirm which version is actually serving traffic, no
+// business logic touched.
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-App-Version", "v1.0.1");
+    await next();
+});
+
 // One structured log line per request (method, path, status code, elapsed ms) —
 // this is what actually gets searched/filtered in Loki day-to-day, far more
 // than the individual EF Core query logs.
