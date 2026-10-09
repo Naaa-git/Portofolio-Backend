@@ -1,3 +1,4 @@
+// v1.0.1 — rollback mechanism test, no behavior change.
 using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
