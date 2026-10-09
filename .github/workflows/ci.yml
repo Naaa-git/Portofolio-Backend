@@ -219,6 +219,12 @@ jobs:
             cd ~/portfolio
             export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
             export API_VERSION=${{ github.ref_name }}
+            # Compose still parses every service in the file even when the
+            # command only targets `api` — FRONTEND_VERSION must resolve to
+            # SOMETHING valid or the whole command fails on an invalid image
+            # reference for the untouched frontend service. "latest" is a
+            # harmless placeholder: it's never actually pulled or run here.
+            export FRONTEND_VERSION=latest
             docker compose -f docker-compose.prod.yml pull api
             docker compose -f docker-compose.prod.yml up -d api
 
