@@ -64,8 +64,12 @@ services:
     environment:
       - GF_SMTP_ENABLED=true
       # Real SMTP now (Brevo), not mailpit — host/creds come from infra.env.
+      - GF_SERVER_ROOT_URL=https://grafana.danadev.my.id
+    # Bound to 127.0.0.1 only — reachable from nginx on the VPS host (which
+    # terminates TLS for grafana.danadev.my.id and proxies here), never
+    # directly from the public internet. Fase 5 reverse-proxy move, done.
     ports:
-      - "3030:3000" # kept reachable for now; moves behind the reverse proxy in Fase 5
+      - "127.0.0.1:3030:3000"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./monitoring/grafana-provisioning:/etc/grafana/provisioning
