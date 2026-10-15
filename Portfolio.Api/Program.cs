@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Protocols;
@@ -187,6 +188,28 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Nginx terminates TLS and forwards to this container over plain HTTP,
+// sending X-Forwarded-Proto so the app can know the original request was
+// HTTPS. Without this middleware, Request.Scheme always reads "http" (the
+// nginx->container hop), so LocalDiskFileStorageService baked "http://" into
+// every stored file URL — causing Mixed Content blocks in the browser.
+// Must run before anything that reads Request.Scheme (UseHttpsRedirection,
+// UseStaticFiles, and the upload endpoints below).
+//
+// KnownNetworks/KnownProxies cleared: by default this middleware only trusts
+// the header from loopback, but nginx here is the host's own nginx forwarding
+// into the container via Docker's port mapping, so the connection doesn't
+// come from loopback from the container's point of view. There's exactly one
+// trusted proxy in front of this API (no public path bypasses it), so
+// trusting the header unconditionally is an acceptable tradeoff here.
+var forwardedHeadersOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor,
+};
+forwardedHeadersOptions.KnownIPNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
 
 using (var scope = app.Services.CreateScope())
 {
