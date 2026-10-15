@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
@@ -23,7 +24,18 @@ var builder = WebApplication.CreateBuilder(args);
 // (Path.Combine(env.WebRootPath, "uploads")), which throws
 // ArgumentNullException the moment anyone uploads a file. Set it explicitly —
 // the directory itself gets created on demand, it doesn't need to pre-exist.
+//
+// WebRootPath alone isn't enough: UseStaticFiles() below serves from
+// WebRootFileProvider, a separate property that CreateBuilder() already
+// initialized (pointing at the original, broken WebRootPath) before this
+// line ever ran. Changing the path string doesn't retroactively update that
+// provider, so uploads were writing to disk fine but GET /uploads/* 404'd —
+// the static file middleware was still looking through the stale provider.
+// Rebuild it explicitly against the corrected path. PhysicalFileProvider
+// requires its root directory to exist at construction time.
 builder.Environment.WebRootPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot");
+Directory.CreateDirectory(builder.Environment.WebRootPath);
+builder.Environment.WebRootFileProvider = new PhysicalFileProvider(builder.Environment.WebRootPath);
 
 // Structured logging: every log line is a JSON object with named properties
 // (not free-form text), which is what makes it filterable/queryable once it
