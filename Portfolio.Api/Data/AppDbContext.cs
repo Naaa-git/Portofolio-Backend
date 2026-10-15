@@ -43,8 +43,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<Experience>(e =>
         {
             e.Property(x => x.Role).IsTranslatable();
-            e.Property(x => x.Description).IsTranslatableList();
+            e.Property(x => x.Description).IsTranslatable();
         });
+
+        // First FK/relation in this codebase. SetNull (not Cascade) — deleting
+        // an Experience should unlink its projects, never delete them.
+        modelBuilder.Entity<Project>()
+            .HasOne(p => p.Experience)
+            .WithMany(e => e.Projects)
+            .HasForeignKey(p => p.ExperienceId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<Skill>(e => e.Property(x => x.Category).IsTranslatable());
 

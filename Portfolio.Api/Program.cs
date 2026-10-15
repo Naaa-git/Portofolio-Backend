@@ -188,7 +188,7 @@ using (var scope = app.Services.CreateScope())
     // a DB backup) — cheap enough at this scale to just redo it every boot.
     var searchService = scope.ServiceProvider.GetRequiredService<IProjectSearchService>();
     await searchService.EnsureIndexAsync();
-    await searchService.ReindexAllAsync(await db.Projects.ToListAsync());
+    await searchService.ReindexAllAsync(await db.Projects.Include(p => p.Experience).ToListAsync());
 }
 
 if (app.Environment.IsDevelopment())

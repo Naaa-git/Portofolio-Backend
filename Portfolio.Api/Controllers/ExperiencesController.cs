@@ -30,4 +30,11 @@ public class ExperiencesController(IExperienceService service) : ControllerBase
     [Authorize]
     public async Task<IActionResult> Delete(int id) =>
         await service.DeleteAsync(id) ? NoContent() : NotFound();
+
+    [HttpPut("{id:int}/projects")]
+    [Authorize]
+    public async Task<IActionResult> SetProjectLinks(int id, SetProjectLinksDto dto) =>
+        await service.SetProjectLinksAsync(id, dto.ProjectIds) ? NoContent() : NotFound();
 }
+
+public record SetProjectLinksDto(List<int> ProjectIds);

@@ -9,4 +9,5 @@ public interface IExperienceService
     Task<ExperienceAdminDto> CreateAsync(ExperienceUpsertDto dto);
     Task<bool> UpdateAsync(int id, ExperienceUpsertDto dto);
     Task<bool> DeleteAsync(int id);
+    Task<bool> SetProjectLinksAsync(int experienceId, List<int> projectIds);
 }

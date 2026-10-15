@@ -7,13 +7,14 @@ namespace Portfolio.Api.Repositories;
 public class ProjectRepository(AppDbContext db) : IProjectRepository
 {
     public Task<List<Project>> GetAllAsync() =>
-        db.Projects.AsNoTracking().OrderByDescending(p => p.Featured).ThenByDescending(p => p.Id).ToListAsync();
+        db.Projects.AsNoTracking().Include(p => p.Experience)
+            .OrderByDescending(p => p.Featured).ThenByDescending(p => p.Id).ToListAsync();
 
     public Task<Project?> GetBySlugAsync(string slug) =>
-        db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Slug == slug);
+        db.Projects.AsNoTracking().Include(p => p.Experience).FirstOrDefaultAsync(p => p.Slug == slug);
 
     public Task<Project?> GetByIdAsync(int id) =>
-        db.Projects.FirstOrDefaultAsync(p => p.Id == id);
+        db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
 
     public async Task<Project> AddAsync(Project project)
     {

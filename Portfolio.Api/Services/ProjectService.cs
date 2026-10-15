@@ -36,11 +36,17 @@ public class ProjectService(IProjectRepository repo, IProjectSearchService searc
 
     public async Task<bool> UpdateAsync(int id, ProjectUpsertDto dto)
     {
+        // ExperienceId isn't part of this DTO — it's only ever set via
+        // PUT /api/experiences/{id}/projects — but UpdateAsync below does a
+        // full-entity overwrite, so it has to be carried forward explicitly
+        // or every normal project edit would silently unlink it.
+        var existingExperienceId = (await repo.GetByIdAsync(id))?.ExperienceId;
         var entity = new Project
         {
             Id = id, Title = dto.Title, Slug = dto.Slug, ShortDescription = dto.ShortDescription,
             LongDescription = dto.LongDescription, TechStack = dto.TechStack, ImageUrl = dto.ImageUrl,
             GithubUrl = dto.GithubUrl, DemoUrl = dto.DemoUrl, Featured = dto.Featured, Category = dto.Category,
+            ExperienceId = existingExperienceId,
         };
         var updated = await repo.UpdateAsync(entity);
         if (updated) await searchService.IndexAsync(entity);
@@ -56,7 +62,7 @@ public class ProjectService(IProjectRepository repo, IProjectSearchService searc
 
     private static ProjectDto ToDto(Project p, string lang) => new(
         p.Id, p.Title, p.Slug, p.ShortDescription.Resolve(lang), p.LongDescription.Resolve(lang), p.TechStack,
-        p.ImageUrl, p.GithubUrl, p.DemoUrl, p.Featured, p.Category.ToString());
+        p.ImageUrl, p.GithubUrl, p.DemoUrl, p.Featured, p.Category.ToString(), p.Experience?.Company);
 
     private static ProjectAdminDto ToAdminDto(Project p) => new(
         p.Id, p.Title, p.Slug, p.ShortDescription, p.LongDescription, p.TechStack,

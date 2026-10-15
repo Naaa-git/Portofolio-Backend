@@ -123,11 +123,12 @@ public class ProjectSearchService : IProjectSearchService
         GithubUrl = p.GithubUrl,
         DemoUrl = p.DemoUrl,
         Featured = p.Featured,
+        ExperienceCompany = p.Experience?.Company,
     };
 
     private static ProjectDto ToDto(ProjectSearchDocument d, string lang) => new(
         d.Id, d.Title, d.Slug,
         lang == "en" ? d.ShortDescriptionEn : d.ShortDescriptionId,
         lang == "en" ? d.LongDescriptionEn : d.LongDescriptionId,
-        d.TechStack, d.ImageUrl, d.GithubUrl, d.DemoUrl, d.Featured, d.Category);
+        d.TechStack, d.ImageUrl, d.GithubUrl, d.DemoUrl, d.Featured, d.Category, d.ExperienceCompany);
 }

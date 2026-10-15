@@ -15,4 +15,10 @@ public class Project
     public string? DemoUrl { get; set; }
     public bool Featured { get; set; }
     public ProjectCategory Category { get; set; }
+
+    // Nullable — most projects (personal/freelance) aren't tied to any job.
+    // Set exclusively via PUT /api/experiences/{id}/projects (Experience side
+    // owns this relationship), never through the normal Project upsert.
+    public int? ExperienceId { get; set; }
+    public Experience? Experience { get; set; }
 }
