@@ -16,11 +16,12 @@ public class ProjectSearchDocument
     public string ShortDescriptionEn { get; set; } = default!;
     public string LongDescriptionId { get; set; } = default!;
     public string LongDescriptionEn { get; set; } = default!;
-    public string CategoryId { get; set; } = default!;
-    public string CategoryEn { get; set; } = default!;
+    // No longer per-language — Category is a fixed enum name now (e.g. "Work"),
+    // same value regardless of locale.
+    public string Category { get; set; } = default!;
     public List<string> TechStack { get; set; } = new();
     public string ImageUrl { get; set; } = default!;
-    public string GithubUrl { get; set; } = default!;
-    public string DemoUrl { get; set; } = default!;
+    public string? GithubUrl { get; set; }
+    public string? DemoUrl { get; set; }
     public bool Featured { get; set; }
 }

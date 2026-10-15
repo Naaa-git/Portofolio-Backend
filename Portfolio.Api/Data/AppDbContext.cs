@@ -52,7 +52,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.Property(p => p.ShortDescription).IsTranslatable();
             e.Property(p => p.LongDescription).IsTranslatable();
-            e.Property(p => p.Category).IsTranslatable();
         });
 
         modelBuilder.Entity<OutsideCodeIntro>(e =>

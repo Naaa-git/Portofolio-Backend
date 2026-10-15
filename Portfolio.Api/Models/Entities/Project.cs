@@ -1,5 +1,7 @@
 namespace Portfolio.Api.Models.Entities;
 
+public enum ProjectCategory { Personal, Freelance, Work }
+
 public class Project
 {
     public int Id { get; set; }
@@ -9,8 +11,8 @@ public class Project
     public Dictionary<string, string> LongDescription { get; set; } = new();
     public List<string> TechStack { get; set; } = new();
     public string ImageUrl { get; set; } = default!;
-    public string GithubUrl { get; set; } = default!;
-    public string DemoUrl { get; set; } = default!;
+    public string? GithubUrl { get; set; }
+    public string? DemoUrl { get; set; }
     public bool Featured { get; set; }
-    public Dictionary<string, string> Category { get; set; } = new();
+    public ProjectCategory Category { get; set; }
 }
