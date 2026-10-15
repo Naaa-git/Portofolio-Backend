@@ -102,8 +102,7 @@ public class ProjectSearchService : IProjectSearchService
     private static Func<FieldsDescriptor<ProjectSearchDocument>, IPromise<Fields>> FieldsWithBoost => f => f
         .Field(d => d.Title, boost: 3)
         .Field(d => d.TechStack, boost: 2)
-        .Field(d => d.CategoryId)
-        .Field(d => d.CategoryEn)
+        .Field(d => d.Category)
         .Field(d => d.ShortDescriptionId)
         .Field(d => d.ShortDescriptionEn)
         .Field(d => d.LongDescriptionId)
@@ -118,8 +117,7 @@ public class ProjectSearchService : IProjectSearchService
         ShortDescriptionEn = p.ShortDescription.Resolve("en"),
         LongDescriptionId = p.LongDescription.Resolve("id"),
         LongDescriptionEn = p.LongDescription.Resolve("en"),
-        CategoryId = p.Category.Resolve("id"),
-        CategoryEn = p.Category.Resolve("en"),
+        Category = p.Category.ToString(),
         TechStack = p.TechStack,
         ImageUrl = p.ImageUrl,
         GithubUrl = p.GithubUrl,
@@ -131,6 +129,5 @@ public class ProjectSearchService : IProjectSearchService
         d.Id, d.Title, d.Slug,
         lang == "en" ? d.ShortDescriptionEn : d.ShortDescriptionId,
         lang == "en" ? d.LongDescriptionEn : d.LongDescriptionId,
-        d.TechStack, d.ImageUrl, d.GithubUrl, d.DemoUrl, d.Featured,
-        lang == "en" ? d.CategoryEn : d.CategoryId);
+        d.TechStack, d.ImageUrl, d.GithubUrl, d.DemoUrl, d.Featured, d.Category);
 }

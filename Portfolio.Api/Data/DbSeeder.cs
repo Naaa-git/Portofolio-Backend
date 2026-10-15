@@ -154,7 +154,7 @@ public static class DbSeeder
                     GithubUrl = "https://github.com/danana",
                     DemoUrl = "#",
                     Featured = true,
-                    Category = Tr("Enterprise", "Enterprise"),
+                    Category = ProjectCategory.Work,
                 },
                 new Project
                 {
@@ -173,7 +173,7 @@ public static class DbSeeder
                     GithubUrl = "https://github.com/danana",
                     DemoUrl = "#",
                     Featured = true,
-                    Category = Tr("Produktivitas", "Productivity"),
+                    Category = ProjectCategory.Work,
                 },
                 new Project
                 {
@@ -192,7 +192,7 @@ public static class DbSeeder
                     GithubUrl = "https://github.com/danana",
                     DemoUrl = "#",
                     Featured = true,
-                    Category = Tr("Analitik", "Analytics"),
+                    Category = ProjectCategory.Work,
                 },
                 new Project
                 {
@@ -212,7 +212,7 @@ public static class DbSeeder
                     GithubUrl = "https://github.com/danana",
                     DemoUrl = "#",
                     Featured = false,
-                    Category = Tr("Security", "Security"),
+                    Category = ProjectCategory.Work,
                 },
                 new Project
                 {
@@ -231,7 +231,7 @@ public static class DbSeeder
                     GithubUrl = "https://github.com/danana",
                     DemoUrl = "#",
                     Featured = false,
-                    Category = Tr("Produktivitas", "Productivity"),
+                    Category = ProjectCategory.Work,
                 }
             );
         }

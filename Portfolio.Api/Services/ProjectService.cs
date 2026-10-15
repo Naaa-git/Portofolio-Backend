@@ -56,7 +56,7 @@ public class ProjectService(IProjectRepository repo, IProjectSearchService searc
 
     private static ProjectDto ToDto(Project p, string lang) => new(
         p.Id, p.Title, p.Slug, p.ShortDescription.Resolve(lang), p.LongDescription.Resolve(lang), p.TechStack,
-        p.ImageUrl, p.GithubUrl, p.DemoUrl, p.Featured, p.Category.Resolve(lang));
+        p.ImageUrl, p.GithubUrl, p.DemoUrl, p.Featured, p.Category.ToString());
 
     private static ProjectAdminDto ToAdminDto(Project p) => new(
         p.Id, p.Title, p.Slug, p.ShortDescription, p.LongDescription, p.TechStack,
