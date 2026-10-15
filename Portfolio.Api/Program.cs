@@ -17,6 +17,14 @@ using Serilog.Sinks.Grafana.Loki;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// This is an API-only project — no wwwroot/ folder ever existed in source,
+// so `dotnet publish` never creates one, and IWebHostEnvironment.WebRootPath
+// comes out null. LocalDiskFileStorageService builds paths under it
+// (Path.Combine(env.WebRootPath, "uploads")), which throws
+// ArgumentNullException the moment anyone uploads a file. Set it explicitly —
+// the directory itself gets created on demand, it doesn't need to pre-exist.
+builder.Environment.WebRootPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot");
+
 // Structured logging: every log line is a JSON object with named properties
 // (not free-form text), which is what makes it filterable/queryable once it
 // lands in Loki instead of just being grep-able. Also quiets EF Core's
