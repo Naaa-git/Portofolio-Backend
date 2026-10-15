@@ -7,7 +7,7 @@ namespace Portfolio.Api.Controllers;
 [ApiController]
 [Route("api/images")]
 [Authorize]
-public class ImagesController(IImageStorageService storage) : ControllerBase
+public class ImagesController(IFileStorageService storage) : ControllerBase
 {
     [HttpPost("upload")]
     [RequestSizeLimit(5 * 1024 * 1024)]
@@ -15,7 +15,7 @@ public class ImagesController(IImageStorageService storage) : ControllerBase
     {
         try
         {
-            var url = await storage.UploadAsync(file);
+            var url = await storage.UploadImageAsync(file);
             return Ok(new { url });
         }
         catch (ArgumentException ex)

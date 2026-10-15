@@ -21,6 +21,9 @@ public class ProfileService(IProfileRepository repo) : IProfileService
 
     public async Task<ProfileAdminDto> UpsertAsync(ProfileUpsertDto dto)
     {
+        // Old avatar/CV files on disk are intentionally left orphaned when
+        // replaced — low-volume, single-admin scale, not worth the extra
+        // surface area (path parsing, race conditions) until it's a real problem.
         var entity = new Profile
         {
             Name = dto.Name,

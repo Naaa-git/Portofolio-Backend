@@ -117,8 +117,8 @@ builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<ITotpService, TotpService>();
 
-// Dev-only mock; swap to an Azure Blob Storage implementation when ready (see LocalDiskImageStorageService).
-builder.Services.AddScoped<IImageStorageService, LocalDiskImageStorageService>();
+// Real production storage mechanism: saves to the VPS's local disk (see LocalDiskFileStorageService).
+builder.Services.AddScoped<IFileStorageService, LocalDiskFileStorageService>();
 
 var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
 var signingKey = jwtSection["SigningKey"]
