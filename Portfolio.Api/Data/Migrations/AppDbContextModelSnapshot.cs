@@ -147,11 +147,10 @@ namespace Portfolio.Api.Data.Migrations
                         .IsRequired()
                         .HasColumnType("jsonb");
 
-                    b.Property<string>("Location")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
 
-                    b.Property<string>("Period")
+                    b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -162,6 +161,9 @@ namespace Portfolio.Api.Data.Migrations
                     b.PrimitiveCollection<List<string>>("Skills")
                         .IsRequired()
                         .HasColumnType("text[]");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -413,6 +415,9 @@ namespace Portfolio.Api.Data.Migrations
                     b.Property<string>("DemoUrl")
                         .HasColumnType("text");
 
+                    b.Property<int?>("ExperienceId")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("Featured")
                         .HasColumnType("boolean");
 
@@ -444,6 +449,8 @@ namespace Portfolio.Api.Data.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ExperienceId");
 
                     b.HasIndex("Slug")
                         .IsUnique();
@@ -498,6 +505,21 @@ namespace Portfolio.Api.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("SocialLinks", (string)null);
+                });
+
+            modelBuilder.Entity("Portfolio.Api.Models.Entities.Project", b =>
+                {
+                    b.HasOne("Portfolio.Api.Models.Entities.Experience", "Experience")
+                        .WithMany("Projects")
+                        .HasForeignKey("ExperienceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Experience");
+                });
+
+            modelBuilder.Entity("Portfolio.Api.Models.Entities.Experience", b =>
+                {
+                    b.Navigation("Projects");
                 });
 #pragma warning restore 612, 618
         }

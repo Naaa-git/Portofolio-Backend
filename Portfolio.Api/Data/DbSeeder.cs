@@ -88,26 +88,28 @@ public static class DbSeeder
                     Company = "Kodehive (PT Kode Gama Teknologi)",
                     Role = Tr("Full Stack Developer", "Full Stack Developer"),
                     Type = "Full-time",
-                    Period = "Jul 2024 – Present",
+                    StartDate = new DateOnly(2024, 7, 1),
+                    EndDate = null,
                     Location = "Jakarta Selatan, Indonesia · On-site",
                     Current = true,
-                    Description = TrList(
-                        ("Meningkatkan performa aplikasi, memangkas waktu respons dari menit ke detik lewat optimasi query, indexing, perbaikan N+1 query, dan implementasi CTE.",
-                         "Improved application performance, reducing response times from minutes to seconds through query optimization, indexing, resolving N+1 queries, and implementing CTEs."),
-                        ("Migrasi dan penyesuaian data dari sistem legacy ke aplikasi baru, memastikan konsistensi data, integritas, dan transisi yang mulus untuk end-user.",
-                         "Migrated and adapted data from legacy systems to new applications, ensuring data consistency, integrity, and smooth transition for end-users."),
-                        ("Mengubah desain UI menjadi interface web yang interaktif menggunakan Vue.js, HTML5, dan TypeScript, meningkatkan pengalaman pengguna dan konsistensi tampilan.",
-                         "Transformed UI designs into interactive web interfaces using Vue.js, HTML5, and TypeScript, enhancing user experience and interface consistency."),
-                        ("Berkolaborasi dengan user dan stakeholder untuk memperjelas requirement dan menyelaraskan implementasi dengan business logic.",
-                         "Collaborated with users and stakeholders to clarify requirements and align implementation with business logic."),
-                        ("Mengimplementasikan autentikasi dan otorisasi menggunakan JWT dan role-based access control, mengamankan data aplikasi yang sensitif.",
-                         "Implemented authentication and authorization using JWT and role-based access control, securing sensitive application data."),
-                        ("Mengintegrasikan caching dan solusi pencarian dengan Redis dan OpenSearch, meningkatkan kecepatan pengambilan data secara signifikan.",
-                         "Integrated caching and search solutions with Redis and OpenSearch, significantly improving data retrieval speed."),
-                        ("Mengembangkan dan mengonsumsi RESTful API untuk komunikasi frontend-backend.",
-                         "Developed and consumed RESTful APIs for frontend-backend communication."),
-                        ("Membuat background job dan scheduled task untuk batch processing dan sinkronisasi data.",
-                         "Created background jobs and scheduled tasks for batch processing and data synchronization.")),
+                    Description = Tr(
+                        "Meningkatkan performa aplikasi, memangkas waktu respons dari menit ke detik lewat optimasi query, indexing, perbaikan N+1 query, dan implementasi CTE.\n" +
+                        "Migrasi dan penyesuaian data dari sistem legacy ke aplikasi baru, memastikan konsistensi data, integritas, dan transisi yang mulus untuk end-user.\n" +
+                        "Mengubah desain UI menjadi interface web yang interaktif menggunakan Vue.js, HTML5, dan TypeScript, meningkatkan pengalaman pengguna dan konsistensi tampilan.\n" +
+                        "Berkolaborasi dengan user dan stakeholder untuk memperjelas requirement dan menyelaraskan implementasi dengan business logic.\n" +
+                        "Mengimplementasikan autentikasi dan otorisasi menggunakan JWT dan role-based access control, mengamankan data aplikasi yang sensitif.\n" +
+                        "Mengintegrasikan caching dan solusi pencarian dengan Redis dan OpenSearch, meningkatkan kecepatan pengambilan data secara signifikan.\n" +
+                        "Mengembangkan dan mengonsumsi RESTful API untuk komunikasi frontend-backend.\n" +
+                        "Membuat background job dan scheduled task untuk batch processing dan sinkronisasi data.",
+
+                        "Improved application performance, reducing response times from minutes to seconds through query optimization, indexing, resolving N+1 queries, and implementing CTEs.\n" +
+                        "Migrated and adapted data from legacy systems to new applications, ensuring data consistency, integrity, and smooth transition for end-users.\n" +
+                        "Transformed UI designs into interactive web interfaces using Vue.js, HTML5, and TypeScript, enhancing user experience and interface consistency.\n" +
+                        "Collaborated with users and stakeholders to clarify requirements and align implementation with business logic.\n" +
+                        "Implemented authentication and authorization using JWT and role-based access control, securing sensitive application data.\n" +
+                        "Integrated caching and search solutions with Redis and OpenSearch, significantly improving data retrieval speed.\n" +
+                        "Developed and consumed RESTful APIs for frontend-backend communication.\n" +
+                        "Created background jobs and scheduled tasks for batch processing and data synchronization."),
                     Skills = [".NET", "Vue.js", "TypeScript", "Redis", "OpenSearch", "PostgreSQL", "JWT"],
                 },
                 new Experience
@@ -115,20 +117,22 @@ public static class DbSeeder
                     Company = "PT Javan Cipta Solusi",
                     Role = Tr("Fullstack Web Developer", "Fullstack Web Developer"),
                     Type = "Part-time",
-                    Period = "Oct 2023 – Apr 2024",
+                    StartDate = new DateOnly(2023, 10, 1),
+                    EndDate = new DateOnly(2024, 4, 1),
                     Location = "Yogyakarta, Indonesia · On-site",
                     Current = false,
-                    Description = TrList(
-                        ("Mengerjakan slicing untuk mengubah desain mockup menjadi kode fungsional dengan akurasi pixel-perfect menggunakan React dan TypeScript.",
-                         "Executed slicing tasks to transform mockup designs into functional code with pixel-perfect accuracy using React and TypeScript."),
-                        ("Memodifikasi infrastruktur backend untuk menyiapkan data yang dipakai frontend, dan menguji integrasi dengan Postman.",
-                         "Modified backend infrastructure to prepare data for frontend utilization and tested integrations with Postman."),
-                        ("Mengintegrasikan digital document management menggunakan OnlyOffice untuk meningkatkan efisiensi dan aksesibilitas sistem.",
-                         "Integrated digital document management using OnlyOffice to enhance efficiency and accessibility within the system."),
-                        ("Berinteraksi dengan backend API untuk mengambil dan menyimpan data menggunakan RESTful API.",
-                         "Interacted with backend APIs for retrieving and storing data using RESTful APIs."),
-                        ("Menggunakan GitLab untuk version control, kolaborasi, dan pelacakan perubahan.",
-                         "Utilized GitLab for version control, collaboration, and change tracking.")),
+                    Description = Tr(
+                        "Mengerjakan slicing untuk mengubah desain mockup menjadi kode fungsional dengan akurasi pixel-perfect menggunakan React dan TypeScript.\n" +
+                        "Memodifikasi infrastruktur backend untuk menyiapkan data yang dipakai frontend, dan menguji integrasi dengan Postman.\n" +
+                        "Mengintegrasikan digital document management menggunakan OnlyOffice untuk meningkatkan efisiensi dan aksesibilitas sistem.\n" +
+                        "Berinteraksi dengan backend API untuk mengambil dan menyimpan data menggunakan RESTful API.\n" +
+                        "Menggunakan GitLab untuk version control, kolaborasi, dan pelacakan perubahan.",
+
+                        "Executed slicing tasks to transform mockup designs into functional code with pixel-perfect accuracy using React and TypeScript.\n" +
+                        "Modified backend infrastructure to prepare data for frontend utilization and tested integrations with Postman.\n" +
+                        "Integrated digital document management using OnlyOffice to enhance efficiency and accessibility within the system.\n" +
+                        "Interacted with backend APIs for retrieving and storing data using RESTful APIs.\n" +
+                        "Utilized GitLab for version control, collaboration, and change tracking."),
                     Skills = ["React", "TypeScript", "OnlyOffice", "RESTful API", "GitLab"],
                 }
             );

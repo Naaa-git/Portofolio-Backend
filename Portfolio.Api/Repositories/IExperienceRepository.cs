@@ -8,4 +8,5 @@ public interface IExperienceRepository
     Task<Experience> AddAsync(Experience experience);
     Task<bool> UpdateAsync(Experience experience);
     Task<bool> DeleteAsync(int id);
+    Task<bool> SetProjectLinksAsync(int experienceId, List<int> projectIds);
 }

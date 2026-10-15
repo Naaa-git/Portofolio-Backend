@@ -24,4 +24,5 @@ public class ProjectSearchDocument
     public string? GithubUrl { get; set; }
     public string? DemoUrl { get; set; }
     public bool Featured { get; set; }
+    public string? ExperienceCompany { get; set; }
 }
