@@ -21,6 +21,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<OutsideCodeBook> OutsideCodeBooks => Set<OutsideCodeBook>();
     public DbSet<LifeInspiration> LifeInspirations => Set<LifeInspiration>();
 
+    public DbSet<LessonCategory> LessonCategories => Set<LessonCategory>();
+    public DbSet<Lesson> Lessons => Set<Lesson>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Project>()
@@ -83,5 +86,31 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.Aspect).IsTranslatable();
             e.Property(x => x.Note).IsTranslatable();
         });
+
+        modelBuilder.Entity<LessonCategory>(e => e.Property(x => x.Name).IsTranslatable());
+
+        modelBuilder.Entity<Lesson>(e =>
+        {
+            e.Property(x => x.Title).IsTranslatable();
+            e.Property(x => x.Description).IsTranslatable();
+        });
+
+        // First required FK in this codebase — a Lesson must belong to a
+        // category. Restrict (not Cascade): deleting a category that still
+        // has Lessons should fail loudly, not silently wipe them.
+        modelBuilder.Entity<Lesson>()
+            .HasOne(l => l.Category).WithMany(c => c.Lessons)
+            .HasForeignKey(l => l.CategoryId).OnDelete(DeleteBehavior.Restrict);
+
+        // Optional tags — same SetNull pattern as Project.ExperienceId.
+        // No reverse nav collection: Project/Experience don't need to list
+        // their tagged Lessons back for v1.
+        modelBuilder.Entity<Lesson>()
+            .HasOne(l => l.Project).WithMany()
+            .HasForeignKey(l => l.ProjectId).OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Lesson>()
+            .HasOne(l => l.Experience).WithMany()
+            .HasForeignKey(l => l.ExperienceId).OnDelete(DeleteBehavior.SetNull);
     }
 }

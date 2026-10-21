@@ -126,6 +126,8 @@ builder.Services.AddScoped<IExperienceRepository, ExperienceRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IAdminUserRepository, AdminUserRepository>();
 builder.Services.AddScoped<IOutsideCodeRepository, OutsideCodeRepository>();
+builder.Services.AddScoped<ILessonCategoryRepository, LessonCategoryRepository>();
+builder.Services.AddScoped<ILessonRepository, LessonRepository>();
 
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<ISkillService, SkillService>();
@@ -135,6 +137,8 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddSingleton<IProjectSearchService, ProjectSearchService>();
 builder.Services.AddScoped<IOutsideCodeService, OutsideCodeService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+builder.Services.AddScoped<ILessonCategoryService, LessonCategoryService>();
+builder.Services.AddScoped<ILessonService, LessonService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<ITotpService, TotpService>();
 
