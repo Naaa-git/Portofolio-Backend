@@ -174,6 +174,62 @@ namespace Portfolio.Api.Data.Migrations
                     b.ToTable("Experiences");
                 });
 
+            modelBuilder.Entity("Portfolio.Api.Models.Entities.Lesson", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<int?>("ExperienceId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ProjectId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("ExperienceId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Lessons");
+                });
+
+            modelBuilder.Entity("Portfolio.Api.Models.Entities.LessonCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LessonCategories");
+                });
+
             modelBuilder.Entity("Portfolio.Api.Models.Entities.LifeInspiration", b =>
                 {
                     b.Property<int>("Id")
@@ -507,6 +563,31 @@ namespace Portfolio.Api.Data.Migrations
                     b.ToTable("SocialLinks");
                 });
 
+            modelBuilder.Entity("Portfolio.Api.Models.Entities.Lesson", b =>
+                {
+                    b.HasOne("Portfolio.Api.Models.Entities.LessonCategory", "Category")
+                        .WithMany("Lessons")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Portfolio.Api.Models.Entities.Experience", "Experience")
+                        .WithMany()
+                        .HasForeignKey("ExperienceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Portfolio.Api.Models.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Experience");
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("Portfolio.Api.Models.Entities.Project", b =>
                 {
                     b.HasOne("Portfolio.Api.Models.Entities.Experience", "Experience")
@@ -520,6 +601,11 @@ namespace Portfolio.Api.Data.Migrations
             modelBuilder.Entity("Portfolio.Api.Models.Entities.Experience", b =>
                 {
                     b.Navigation("Projects");
+                });
+
+            modelBuilder.Entity("Portfolio.Api.Models.Entities.LessonCategory", b =>
+                {
+                    b.Navigation("Lessons");
                 });
 #pragma warning restore 612, 618
         }
