@@ -105,8 +105,8 @@ public class ProjectSearchService : IProjectSearchService
         .Field(d => d.Category)
         .Field(d => d.ShortDescriptionId)
         .Field(d => d.ShortDescriptionEn)
-        .Field(d => d.LongDescriptionId)
-        .Field(d => d.LongDescriptionEn);
+        .Field(d => d.ContributionId)
+        .Field(d => d.ContributionEn);
 
     private static ProjectSearchDocument ToDocument(Project p) => new()
     {
@@ -115,8 +115,8 @@ public class ProjectSearchService : IProjectSearchService
         Slug = p.Slug,
         ShortDescriptionId = p.ShortDescription.Resolve("id"),
         ShortDescriptionEn = p.ShortDescription.Resolve("en"),
-        LongDescriptionId = p.LongDescription.Resolve("id"),
-        LongDescriptionEn = p.LongDescription.Resolve("en"),
+        ContributionId = p.Contribution.ResolveList("id"),
+        ContributionEn = p.Contribution.ResolveList("en"),
         Category = p.Category.ToString(),
         TechStack = p.TechStack,
         ImageUrl = p.ImageUrl,
@@ -129,6 +129,6 @@ public class ProjectSearchService : IProjectSearchService
     private static ProjectDto ToDto(ProjectSearchDocument d, string lang) => new(
         d.Id, d.Title, d.Slug,
         lang == "en" ? d.ShortDescriptionEn : d.ShortDescriptionId,
-        lang == "en" ? d.LongDescriptionEn : d.LongDescriptionId,
+        lang == "en" ? d.ContributionEn : d.ContributionId,
         d.TechStack, d.ImageUrl, d.GithubUrl, d.DemoUrl, d.Featured, d.Category, d.ExperienceCompany);
 }

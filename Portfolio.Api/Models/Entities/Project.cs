@@ -8,7 +8,7 @@ public class Project
     public string Title { get; set; } = default!;
     public string Slug { get; set; } = default!;
     public Dictionary<string, string> ShortDescription { get; set; } = new();
-    public Dictionary<string, string> LongDescription { get; set; } = new();
+    public List<Dictionary<string, string>> Contribution { get; set; } = new();
     public List<string> TechStack { get; set; } = new();
     public string ImageUrl { get; set; } = default!;
     public string? GithubUrl { get; set; }

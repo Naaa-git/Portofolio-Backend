@@ -65,7 +65,7 @@ namespace Portfolio.Api.Data.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("AdminUsers", (string)null);
+                    b.ToTable("AdminUsers");
                 });
 
             modelBuilder.Entity("Portfolio.Api.Models.Entities.AuditLog", b =>
@@ -98,7 +98,7 @@ namespace Portfolio.Api.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AuditLogs", (string)null);
+                    b.ToTable("AuditLogs");
                 });
 
             modelBuilder.Entity("Portfolio.Api.Models.Entities.AwayFromKeyboardItem", b =>
@@ -125,7 +125,7 @@ namespace Portfolio.Api.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AwayFromKeyboardItems", (string)null);
+                    b.ToTable("AwayFromKeyboardItems");
                 });
 
             modelBuilder.Entity("Portfolio.Api.Models.Entities.Experience", b =>
@@ -171,7 +171,7 @@ namespace Portfolio.Api.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Experiences", (string)null);
+                    b.ToTable("Experiences");
                 });
 
             modelBuilder.Entity("Portfolio.Api.Models.Entities.LifeInspiration", b =>
@@ -202,7 +202,7 @@ namespace Portfolio.Api.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LifeInspirations", (string)null);
+                    b.ToTable("LifeInspirations");
                 });
 
             modelBuilder.Entity("Portfolio.Api.Models.Entities.MovieTake", b =>
@@ -229,7 +229,7 @@ namespace Portfolio.Api.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MovieTakes", (string)null);
+                    b.ToTable("MovieTakes");
                 });
 
             modelBuilder.Entity("Portfolio.Api.Models.Entities.MusicArtist", b =>
@@ -256,7 +256,7 @@ namespace Portfolio.Api.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MusicArtists", (string)null);
+                    b.ToTable("MusicArtists");
                 });
 
             modelBuilder.Entity("Portfolio.Api.Models.Entities.OutsideCodeBook", b =>
@@ -290,7 +290,7 @@ namespace Portfolio.Api.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("OutsideCodeBooks", (string)null);
+                    b.ToTable("OutsideCodeBooks");
                 });
 
             modelBuilder.Entity("Portfolio.Api.Models.Entities.OutsideCodeIntro", b =>
@@ -311,7 +311,7 @@ namespace Portfolio.Api.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("OutsideCodeIntros", (string)null);
+                    b.ToTable("OutsideCodeIntros");
                 });
 
             modelBuilder.Entity("Portfolio.Api.Models.Entities.PodcastChannel", b =>
@@ -338,7 +338,7 @@ namespace Portfolio.Api.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PodcastChannels", (string)null);
+                    b.ToTable("PodcastChannels");
                 });
 
             modelBuilder.Entity("Portfolio.Api.Models.Entities.Profile", b =>
@@ -398,7 +398,7 @@ namespace Portfolio.Api.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Profiles", (string)null);
+                    b.ToTable("Profiles");
                 });
 
             modelBuilder.Entity("Portfolio.Api.Models.Entities.Project", b =>
@@ -411,6 +411,10 @@ namespace Portfolio.Api.Data.Migrations
 
                     b.Property<int>("Category")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Contribution")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("DemoUrl")
                         .HasColumnType("text");
@@ -427,10 +431,6 @@ namespace Portfolio.Api.Data.Migrations
                     b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<string>("LongDescription")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
 
                     b.Property<string>("ShortDescription")
                         .IsRequired()
@@ -455,7 +455,7 @@ namespace Portfolio.Api.Data.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Projects", (string)null);
+                    b.ToTable("Projects");
                 });
 
             modelBuilder.Entity("Portfolio.Api.Models.Entities.Skill", b =>
@@ -479,7 +479,7 @@ namespace Portfolio.Api.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Skills", (string)null);
+                    b.ToTable("Skills");
                 });
 
             modelBuilder.Entity("Portfolio.Api.Models.Entities.SocialLink", b =>
@@ -504,7 +504,7 @@ namespace Portfolio.Api.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SocialLinks", (string)null);
+                    b.ToTable("SocialLinks");
                 });
 
             modelBuilder.Entity("Portfolio.Api.Models.Entities.Project", b =>

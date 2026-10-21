@@ -26,7 +26,7 @@ public class ProjectService(IProjectRepository repo, IProjectSearchService searc
         var entity = new Project
         {
             Title = dto.Title, Slug = dto.Slug, ShortDescription = dto.ShortDescription,
-            LongDescription = dto.LongDescription, TechStack = dto.TechStack, ImageUrl = dto.ImageUrl,
+            Contribution = dto.Contribution, TechStack = dto.TechStack, ImageUrl = dto.ImageUrl,
             GithubUrl = dto.GithubUrl, DemoUrl = dto.DemoUrl, Featured = dto.Featured, Category = dto.Category,
         };
         var created = await repo.AddAsync(entity);
@@ -44,7 +44,7 @@ public class ProjectService(IProjectRepository repo, IProjectSearchService searc
         var entity = new Project
         {
             Id = id, Title = dto.Title, Slug = dto.Slug, ShortDescription = dto.ShortDescription,
-            LongDescription = dto.LongDescription, TechStack = dto.TechStack, ImageUrl = dto.ImageUrl,
+            Contribution = dto.Contribution, TechStack = dto.TechStack, ImageUrl = dto.ImageUrl,
             GithubUrl = dto.GithubUrl, DemoUrl = dto.DemoUrl, Featured = dto.Featured, Category = dto.Category,
             ExperienceId = existingExperienceId,
         };
@@ -61,10 +61,10 @@ public class ProjectService(IProjectRepository repo, IProjectSearchService searc
     }
 
     private static ProjectDto ToDto(Project p, string lang) => new(
-        p.Id, p.Title, p.Slug, p.ShortDescription.Resolve(lang), p.LongDescription.Resolve(lang), p.TechStack,
+        p.Id, p.Title, p.Slug, p.ShortDescription.Resolve(lang), p.Contribution.ResolveList(lang), p.TechStack,
         p.ImageUrl, p.GithubUrl, p.DemoUrl, p.Featured, p.Category.ToString(), p.Experience?.Company);
 
     private static ProjectAdminDto ToAdminDto(Project p) => new(
-        p.Id, p.Title, p.Slug, p.ShortDescription, p.LongDescription, p.TechStack,
+        p.Id, p.Title, p.Slug, p.ShortDescription, p.Contribution, p.TechStack,
         p.ImageUrl, p.GithubUrl, p.DemoUrl, p.Featured, p.Category);
 }

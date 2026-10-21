@@ -148,11 +148,11 @@ public static class DbSeeder
                     ShortDescription = Tr(
                         "Platform HR enterprise untuk manajemen talent, payroll, dan lifecycle karyawan.",
                         "Enterprise HR platform for talent management, payroll, and employee lifecycle."),
-                    LongDescription = Tr(
+                    Contribution = TrList((
                         "Sistem manajemen HR komprehensif yang dibangun untuk skala enterprise. Fitur mencakup manajemen " +
                         "lifecycle karyawan, pemrosesan payroll, performance review, manajemen cuti, dan dashboard analitik " +
                         "detail. Dioptimalkan untuk operasi data volume tinggi dengan integrasi Redis caching dan OpenSearch.",
-                        "A comprehensive HR management system built for enterprise scale. Features include employee lifecycle management, payroll processing, performance reviews, leave management, and detailed analytics dashboards. Optimized for high-volume data operations with Redis caching and OpenSearch integration."),
+                        "A comprehensive HR management system built for enterprise scale. Features include employee lifecycle management, payroll processing, performance reviews, leave management, and detailed analytics dashboards. Optimized for high-volume data operations with Redis caching and OpenSearch integration.")),
                     TechStack = [".NET", "Vue.js", "TypeScript", "PostgreSQL", "Redis", "OpenSearch"],
                     ImageUrl = "https://picsum.photos/seed/italent/800/450",
                     GithubUrl = "https://github.com/danana",
@@ -167,11 +167,11 @@ public static class DbSeeder
                     ShortDescription = Tr(
                         "Sistem manajemen dokumen dengan integrasi OnlyOffice untuk kolaborasi real-time.",
                         "Document management system with OnlyOffice integration for real-time collaboration."),
-                    LongDescription = Tr(
+                    Contribution = TrList((
                         "Platform manajemen dokumen digital yang mengintegrasikan OnlyOffice untuk editing kolaboratif. " +
                         "Mendukung versioning dokumen, role-based access control, workflow approval, dan audit trail. " +
                         "Dibangun dengan React dan backend .NET, dengan fitur kolaborasi real-time.",
-                        "A digital document management platform that integrates OnlyOffice for collaborative editing. Supports document versioning, role-based access control, workflow approvals, and audit trails. Built with React and a .NET backend, with real-time collaboration features."),
+                        "A digital document management platform that integrates OnlyOffice for collaborative editing. Supports document versioning, role-based access control, workflow approvals, and audit trails. Built with React and a .NET backend, with real-time collaboration features.")),
                     TechStack = ["React", "TypeScript", ".NET", "PostgreSQL", "OnlyOffice"],
                     ImageUrl = "https://picsum.photos/seed/docflow/800/450",
                     GithubUrl = "https://github.com/danana",
@@ -186,11 +186,11 @@ public static class DbSeeder
                     ShortDescription = Tr(
                         "Dashboard analitik real-time dengan chart interaktif dan visualisasi data.",
                         "Real-time analytics dashboard with interactive charts and data visualization."),
-                    LongDescription = Tr(
+                    Contribution = TrList((
                         "Dashboard analitik modern yang menyajikan insight real-time lewat chart dan visualisasi interaktif. " +
                         "Fitur mencakup widget yang bisa dikustomisasi, export data, filter rentang tanggal, dan dukungan " +
                         "multi-tenant. Dioptimalkan untuk performa dengan lazy loading dan desain API yang efisien.",
-                        "A modern analytics dashboard providing real-time insights through interactive charts and visualizations. Features include customizable widgets, data export, date range filtering, and multi-tenant support. Optimized for performance with lazy loading and efficient API design."),
+                        "A modern analytics dashboard providing real-time insights through interactive charts and visualizations. Features include customizable widgets, data export, date range filtering, and multi-tenant support. Optimized for performance with lazy loading and efficient API design.")),
                     TechStack = ["Vue.js", "TypeScript", ".NET", "Chart.js", "Redis"],
                     ImageUrl = "https://picsum.photos/seed/analytics/800/450",
                     GithubUrl = "https://github.com/danana",
@@ -205,12 +205,12 @@ public static class DbSeeder
                     ShortDescription = Tr(
                         "Boilerplate autentikasi production-ready dengan JWT dan role-based access control.",
                         "Production-ready authentication boilerplate with JWT and role-based access control."),
-                    LongDescription = Tr(
+                    Contribution = TrList((
                         "Sistem autentikasi dan otorisasi yang bisa dipakai ulang, dibangun dengan .NET dan Vue.js. " +
                         "Termasuk manajemen JWT token, refresh token rotation, role-based access control (RBAC), rate " +
                         "limiting, dan audit logging yang komprehensif. Didesain sebagai starter template untuk aplikasi " +
                         "enterprise.",
-                        "A reusable authentication and authorization system built with .NET and Vue.js. Includes JWT token management, refresh token rotation, role-based access control (RBAC), rate limiting, and comprehensive audit logging. Designed as a starter template for enterprise applications."),
+                        "A reusable authentication and authorization system built with .NET and Vue.js. Includes JWT token management, refresh token rotation, role-based access control (RBAC), rate limiting, and comprehensive audit logging. Designed as a starter template for enterprise applications.")),
                     TechStack = [".NET", "Vue.js", "TypeScript", "JWT", "PostgreSQL"],
                     ImageUrl = "https://picsum.photos/seed/authguard/800/450",
                     GithubUrl = "https://github.com/danana",
@@ -225,11 +225,11 @@ public static class DbSeeder
                     ShortDescription = Tr(
                         "Tool manajemen project ala Kanban dengan fitur kolaborasi tim.",
                         "Kanban-style project management tool with team collaboration features."),
-                    LongDescription = Tr(
+                    Contribution = TrList((
                         "Aplikasi manajemen project yang ringan dengan Kanban board, assignment task, pelacakan deadline, " +
                         "dan fitur kolaborasi tim. Dibangun dengan React dan RESTful API .NET, dengan update real-time " +
                         "lewat SignalR.",
-                        "A lightweight project management application with Kanban boards, task assignments, deadline tracking, and team collaboration features. Built with React and a RESTful .NET API, with real-time updates via SignalR."),
+                        "A lightweight project management application with Kanban boards, task assignments, deadline tracking, and team collaboration features. Built with React and a RESTful .NET API, with real-time updates via SignalR.")),
                     TechStack = ["React", "TypeScript", ".NET", "SignalR", "PostgreSQL"],
                     ImageUrl = "https://picsum.photos/seed/taskflow/800/450",
                     GithubUrl = "https://github.com/danana",

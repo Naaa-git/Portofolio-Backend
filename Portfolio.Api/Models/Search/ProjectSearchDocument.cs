@@ -14,8 +14,8 @@ public class ProjectSearchDocument
     public string Slug { get; set; } = default!;
     public string ShortDescriptionId { get; set; } = default!;
     public string ShortDescriptionEn { get; set; } = default!;
-    public string LongDescriptionId { get; set; } = default!;
-    public string LongDescriptionEn { get; set; } = default!;
+    public List<string> ContributionId { get; set; } = new();
+    public List<string> ContributionEn { get; set; } = new();
     // No longer per-language — Category is a fixed enum name now (e.g. "Work"),
     // same value regardless of locale.
     public string Category { get; set; } = default!;
