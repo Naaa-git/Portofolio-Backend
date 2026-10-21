@@ -59,7 +59,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<Project>(e =>
         {
             e.Property(p => p.ShortDescription).IsTranslatable();
-            e.Property(p => p.LongDescription).IsTranslatable();
+            e.Property(p => p.Contribution).IsTranslatableList();
         });
 
         modelBuilder.Entity<OutsideCodeIntro>(e =>
