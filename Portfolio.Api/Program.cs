@@ -166,16 +166,44 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// Auth endpoints (login, OTP/TOTP verification) get a strict per-IP limit —
-// this is the actual defense against brute-forcing a 6-digit code, not the
-// hashing. 5 attempts/minute is generous for a real human, harsh for a script.
+// Traffic goes Cloudflare -> nginx -> here, two proxy hops deep. Connection.
+// RemoteIpAddress (even after UseForwardedHeaders above) only unwinds one hop,
+// so it resolves to Cloudflare's edge IP, not the visitor's — every visitor
+// would look identical to the limiter. CF-Connecting-IP is the one header
+// Cloudflare guarantees holds the real original IP regardless of hop depth,
+// so partition keys read that first, falling back to RemoteIpAddress for
+// local dev / anything not behind Cloudflare.
+static string GetClientIp(HttpContext httpContext) =>
+    httpContext.Request.Headers["CF-Connecting-IP"].FirstOrDefault()
+    ?? httpContext.Connection.RemoteIpAddress?.ToString()
+    ?? "unknown";
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
+    // Baseline for every request, on top of (not instead of) the named
+    // policies below — a safety net for endpoints nobody remembered to
+    // annotate explicitly. Token bucket: tolerates a normal page-load burst
+    // (several assets at once) while still capping sustained abuse.
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetTokenBucketLimiter(
+            partitionKey: GetClientIp(httpContext),
+            factory: _ => new TokenBucketRateLimiterOptions
+            {
+                TokenLimit = 100,
+                TokensPerPeriod = 100,
+                ReplenishmentPeriod = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            }));
+
+    // Auth endpoints (login, OTP/TOTP verification) get a strict per-IP limit —
+    // this is the actual defense against brute-forcing a 6-digit code, not the
+    // hashing. 5 attempts/minute is generous for a real human, harsh for a script.
     options.AddPolicy("auth", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            partitionKey: GetClientIp(httpContext),
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 5,
