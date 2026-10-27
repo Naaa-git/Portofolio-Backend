@@ -1,6 +1,8 @@
 // v1.0.1 — rollback mechanism test, no behavior change.
 using System.Text;
 using System.Threading.RateLimiting;
+using Confluent.Kafka;
+using Confluent.Kafka.Admin;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -273,6 +275,35 @@ using (var scope = app.Services.CreateScope())
     var searchService = scope.ServiceProvider.GetRequiredService<IProjectSearchService>();
     await searchService.EnsureIndexAsync();
     await searchService.ReindexAllAsync(await db.Projects.Include(p => p.Experience).ToListAsync());
+}
+
+// Create-if-missing for every topic this app publishes/consumes. Safe to run
+// on every startup: if a topic already exists, the broker returns
+// TopicAlreadyExists, which we just swallow — existing data/offsets are never
+// touched. Without this, a brand-new topic (e.g. first deploy of a new
+// feature) makes the consumer's Subscribe()+Consume() throw "Unknown topic or
+// partition" and crash-loop the whole host, since this broker doesn't have
+// auto.create.topics.enable on.
+{
+    var kafkaOptions = app.Services.GetRequiredService<IOptions<KafkaOptions>>().Value;
+    using var adminClient = new AdminClientBuilder(
+        new AdminClientConfig { BootstrapServers = kafkaOptions.BootstrapServers }).Build();
+
+    string[] topics =
+    [
+        kafkaOptions.OtpEmailTopic, kafkaOptions.OtpEmailDlqTopic,
+        kafkaOptions.ContactEmailTopic, kafkaOptions.ContactEmailDlqTopic,
+    ];
+
+    try
+    {
+        await adminClient.CreateTopicsAsync(topics.Select(name =>
+            new TopicSpecification { Name = name, NumPartitions = 1, ReplicationFactor = 1 }));
+    }
+    catch (CreateTopicsException ex) when (ex.Results.All(r => r.Error.Code == ErrorCode.TopicAlreadyExists))
+    {
+        // All already exist — the expected case on every restart after the first.
+    }
 }
 
 if (app.Environment.IsDevelopment())
