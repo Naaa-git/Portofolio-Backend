@@ -1,6 +1,10 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Portfolio.Api.Models.Dto;
 
-public record LoginRequestDto(string Username, string Password);
+public record LoginRequestDto(
+    [Required, StringLength(50)] string Username,
+    [Required, StringLength(100)] string Password);
 
 public enum LoginChallenge { None, Totp, EmailOtp }
 
@@ -12,12 +16,18 @@ public enum LoginChallenge { None, Totp, EmailOtp }
 /// </summary>
 public record LoginResponseDto(LoginChallenge Challenge, string? AccessToken, DateTime? ExpiresAtUtc, string? PendingToken);
 
-public record VerifyTotpLoginRequestDto(string PendingToken, string Code);
+public record VerifyTotpLoginRequestDto(
+    [Required] string PendingToken,
+    [Required, RegularExpression(@"^\d{6}$")] string Code);
 
-public record VerifyEmailOtpLoginRequestDto(string PendingToken, string Code);
+public record VerifyEmailOtpLoginRequestDto(
+    [Required] string PendingToken,
+    [Required, RegularExpression(@"^\d{6}$")] string Code);
 
-public record GoogleLoginRequestDto(string IdToken);
+public record GoogleLoginRequestDto([Required] string IdToken);
 
-public record MicrosoftLoginRequestDto(string IdToken);
+public record MicrosoftLoginRequestDto([Required] string IdToken);
 
-public record ChangePasswordRequestDto(string CurrentPassword, string NewPassword);
+public record ChangePasswordRequestDto(
+    [Required] string CurrentPassword,
+    [Required, StringLength(100, MinimumLength = 8)] string NewPassword);
