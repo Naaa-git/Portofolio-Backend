@@ -33,6 +33,18 @@ public static class AppMetrics
         "portfolio_otp_consumer_lag",
         "Number of messages in the send-otp-email topic not yet processed by the consumer.");
 
+    public static readonly Counter ContactEmailsSent = Metrics.CreateCounter(
+        "portfolio_contact_emails_sent_total",
+        "Number of contact-form notification emails successfully handed off to Brevo.");
+
+    public static readonly Counter ContactEmailFailures = Metrics.CreateCounter(
+        "portfolio_contact_email_failures_total",
+        "Number of contact-form notification emails that failed to send via Brevo (row stays recoverable in ContactMessages, unlike OTP).");
+
+    public static readonly Gauge ContactConsumerLag = Metrics.CreateGauge(
+        "portfolio_contact_consumer_lag",
+        "Number of messages in the send-contact-email topic not yet processed by the consumer.");
+
     /// <summary>
     /// Forces every series to exist with an initial value of 0 from boot,
     /// instead of only appearing the first time something actually increments
@@ -49,5 +61,7 @@ public static class AppMetrics
         FailedLoginAttempts.WithLabels("email_otp").Inc(0);
         OtpEmailsSent.Inc(0);
         OtpEmailFailures.Inc(0);
+        ContactEmailsSent.Inc(0);
+        ContactEmailFailures.Inc(0);
     }
 }

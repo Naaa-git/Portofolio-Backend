@@ -112,6 +112,8 @@ builder.Services.Configure<OpenSearchOptions>(builder.Configuration.GetSection(O
 builder.Services.Configure<KafkaOptions>(builder.Configuration.GetSection(KafkaOptions.SectionName));
 builder.Services.AddSingleton<IOtpEmailProducer, KafkaOtpEmailProducer>();
 builder.Services.AddHostedService<OtpEmailConsumer>();
+builder.Services.AddSingleton<IContactEmailProducer, KafkaContactEmailProducer>();
+builder.Services.AddHostedService<ContactEmailConsumer>();
 
 builder.Services.AddSingleton(new ConfigurationManager<OpenIdConnectConfiguration>(
     "https://login.microsoftonline.com/consumers/v2.0/.well-known/openid-configuration",
@@ -128,6 +130,7 @@ builder.Services.AddScoped<IAdminUserRepository, AdminUserRepository>();
 builder.Services.AddScoped<IOutsideCodeRepository, OutsideCodeRepository>();
 builder.Services.AddScoped<ILessonCategoryRepository, LessonCategoryRepository>();
 builder.Services.AddScoped<ILessonRepository, LessonRepository>();
+builder.Services.AddScoped<IContactMessageRepository, ContactMessageRepository>();
 
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<ISkillService, SkillService>();
@@ -139,6 +142,7 @@ builder.Services.AddScoped<IOutsideCodeService, OutsideCodeService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<ILessonCategoryService, LessonCategoryService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
+builder.Services.AddScoped<IContactMessageService, ContactMessageService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<ITotpService, TotpService>();
 
@@ -207,6 +211,19 @@ builder.Services.AddRateLimiter(options =>
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+            }));
+
+    // Public write endpoint, no auth — anti-spam, not brute-force defense.
+    // Looser than "auth" since a real visitor might legitimately retry once
+    // or twice, but still well below what a script spamming the form needs.
+    options.AddPolicy("contact", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: GetClientIp(httpContext),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 4,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0,
             }));
