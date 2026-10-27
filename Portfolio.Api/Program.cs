@@ -284,6 +284,13 @@ using (var scope = app.Services.CreateScope())
 // feature) makes the consumer's Subscribe()+Consume() throw "Unknown topic or
 // partition" and crash-loop the whole host, since this broker doesn't have
 // auto.create.topics.enable on.
+//
+// Must never be fatal if Kafka itself is unreachable — same invariant the
+// CI smoke-test stage already relies on (it deliberately runs with no Kafka
+// service at all, since the consumers' Consume() calls just block/retry
+// instead of throwing). A short request timeout plus a catch-all here keeps
+// that true: no broker just means the topics stay un-created until the app
+// can actually reach one, exactly like the consumers already behave.
 {
     var kafkaOptions = app.Services.GetRequiredService<IOptions<KafkaOptions>>().Value;
     using var adminClient = new AdminClientBuilder(
@@ -297,12 +304,21 @@ using (var scope = app.Services.CreateScope())
 
     try
     {
-        await adminClient.CreateTopicsAsync(topics.Select(name =>
-            new TopicSpecification { Name = name, NumPartitions = 1, ReplicationFactor = 1 }));
+        await adminClient.CreateTopicsAsync(
+            topics.Select(name => new TopicSpecification { Name = name, NumPartitions = 1, ReplicationFactor = 1 }),
+            new CreateTopicsOptions { RequestTimeout = TimeSpan.FromSeconds(5) });
     }
     catch (CreateTopicsException ex) when (ex.Results.All(r => r.Error.Code == ErrorCode.TopicAlreadyExists))
     {
         // All already exist — the expected case on every restart after the first.
+    }
+    catch (Exception ex)
+    {
+        // Broker unreachable, timed out, etc. — log and move on. The
+        // consumers below will just sit retrying their own connection,
+        // same as they always have; topics get created on a later restart
+        // once Kafka is actually reachable.
+        app.Logger.LogWarning(ex, "Gagal auto-create Kafka topics di startup — lanjut tanpa itu, konsumer bakal retry sendiri");
     }
 }
 
