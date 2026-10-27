@@ -7,4 +7,6 @@ public class KafkaOptions
     public string BootstrapServers { get; set; } = "localhost:29092";
     public string OtpEmailTopic { get; set; } = "send-otp-email";
     public string OtpEmailDlqTopic { get; set; } = "send-otp-email-dlq";
+    public string ContactEmailTopic { get; set; } = "send-contact-email";
+    public string ContactEmailDlqTopic { get; set; } = "send-contact-email-dlq";
 }

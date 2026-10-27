@@ -24,6 +24,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<LessonCategory> LessonCategories => Set<LessonCategory>();
     public DbSet<Lesson> Lessons => Set<Lesson>();
 
+    public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Project>()

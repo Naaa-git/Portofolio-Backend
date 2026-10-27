@@ -1,6 +1,8 @@
 // v1.0.1 — rollback mechanism test, no behavior change.
 using System.Text;
 using System.Threading.RateLimiting;
+using Confluent.Kafka;
+using Confluent.Kafka.Admin;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -112,6 +114,8 @@ builder.Services.Configure<OpenSearchOptions>(builder.Configuration.GetSection(O
 builder.Services.Configure<KafkaOptions>(builder.Configuration.GetSection(KafkaOptions.SectionName));
 builder.Services.AddSingleton<IOtpEmailProducer, KafkaOtpEmailProducer>();
 builder.Services.AddHostedService<OtpEmailConsumer>();
+builder.Services.AddSingleton<IContactEmailProducer, KafkaContactEmailProducer>();
+builder.Services.AddHostedService<ContactEmailConsumer>();
 
 builder.Services.AddSingleton(new ConfigurationManager<OpenIdConnectConfiguration>(
     "https://login.microsoftonline.com/consumers/v2.0/.well-known/openid-configuration",
@@ -128,6 +132,7 @@ builder.Services.AddScoped<IAdminUserRepository, AdminUserRepository>();
 builder.Services.AddScoped<IOutsideCodeRepository, OutsideCodeRepository>();
 builder.Services.AddScoped<ILessonCategoryRepository, LessonCategoryRepository>();
 builder.Services.AddScoped<ILessonRepository, LessonRepository>();
+builder.Services.AddScoped<IContactMessageRepository, ContactMessageRepository>();
 
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<ISkillService, SkillService>();
@@ -139,6 +144,7 @@ builder.Services.AddScoped<IOutsideCodeService, OutsideCodeService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<ILessonCategoryService, LessonCategoryService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
+builder.Services.AddScoped<IContactMessageService, ContactMessageService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<ITotpService, TotpService>();
 
@@ -210,6 +216,19 @@ builder.Services.AddRateLimiter(options =>
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0,
             }));
+
+    // Public write endpoint, no auth — anti-spam, not brute-force defense.
+    // Looser than "auth" since a real visitor might legitimately retry once
+    // or twice, but still well below what a script spamming the form needs.
+    options.AddPolicy("contact", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: GetClientIp(httpContext),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 4,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+            }));
 });
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
@@ -256,6 +275,51 @@ using (var scope = app.Services.CreateScope())
     var searchService = scope.ServiceProvider.GetRequiredService<IProjectSearchService>();
     await searchService.EnsureIndexAsync();
     await searchService.ReindexAllAsync(await db.Projects.Include(p => p.Experience).ToListAsync());
+}
+
+// Create-if-missing for every topic this app publishes/consumes. Safe to run
+// on every startup: if a topic already exists, the broker returns
+// TopicAlreadyExists, which we just swallow — existing data/offsets are never
+// touched. Without this, a brand-new topic (e.g. first deploy of a new
+// feature) makes the consumer's Subscribe()+Consume() throw "Unknown topic or
+// partition" and crash-loop the whole host, since this broker doesn't have
+// auto.create.topics.enable on.
+//
+// Must never be fatal if Kafka itself is unreachable — same invariant the
+// CI smoke-test stage already relies on (it deliberately runs with no Kafka
+// service at all, since the consumers' Consume() calls just block/retry
+// instead of throwing). A short request timeout plus a catch-all here keeps
+// that true: no broker just means the topics stay un-created until the app
+// can actually reach one, exactly like the consumers already behave.
+{
+    var kafkaOptions = app.Services.GetRequiredService<IOptions<KafkaOptions>>().Value;
+    using var adminClient = new AdminClientBuilder(
+        new AdminClientConfig { BootstrapServers = kafkaOptions.BootstrapServers }).Build();
+
+    string[] topics =
+    [
+        kafkaOptions.OtpEmailTopic, kafkaOptions.OtpEmailDlqTopic,
+        kafkaOptions.ContactEmailTopic, kafkaOptions.ContactEmailDlqTopic,
+    ];
+
+    try
+    {
+        await adminClient.CreateTopicsAsync(
+            topics.Select(name => new TopicSpecification { Name = name, NumPartitions = 1, ReplicationFactor = 1 }),
+            new CreateTopicsOptions { RequestTimeout = TimeSpan.FromSeconds(5) });
+    }
+    catch (CreateTopicsException ex) when (ex.Results.All(r => r.Error.Code == ErrorCode.TopicAlreadyExists))
+    {
+        // All already exist — the expected case on every restart after the first.
+    }
+    catch (Exception ex)
+    {
+        // Broker unreachable, timed out, etc. — log and move on. The
+        // consumers below will just sit retrying their own connection,
+        // same as they always have; topics get created on a later restart
+        // once Kafka is actually reachable.
+        app.Logger.LogWarning(ex, "Gagal auto-create Kafka topics di startup — lanjut tanpa itu, konsumer bakal retry sendiri");
+    }
 }
 
 if (app.Environment.IsDevelopment())
