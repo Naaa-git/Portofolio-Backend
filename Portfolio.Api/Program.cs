@@ -338,10 +338,49 @@ app.Use(async (context, next) =>
     await next();
 });
 
+// EnableBuffering makes the request body stream seekable, so it can be read
+// again later (in EnrichDiagnosticContext below) after model binding has
+// already consumed it once. Must run before anything else touches the body.
+app.Use(async (context, next) =>
+{
+    context.Request.EnableBuffering();
+    await next();
+});
+
 // One structured log line per request (method, path, status code, elapsed ms) —
 // this is what actually gets searched/filtered in Loki day-to-day, far more
 // than the individual EF Core query logs.
-app.UseSerilogRequestLogging();
+app.UseSerilogRequestLogging(options =>
+{
+    // Prometheus scrapes /metrics every 15s (see prometheus.yml) and would
+    // otherwise drown out real traffic in Loki with identical "responded 200"
+    // lines. Downgraded below the global MinimumLevel.Information so they're
+    // dropped entirely — real traffic (and any actual error, regardless of
+    // path) is untouched.
+    options.GetLevel = (httpContext, _, ex) =>
+        ex != null || httpContext.Response.StatusCode > 499
+            ? Serilog.Events.LogEventLevel.Error
+        : httpContext.Request.Path.StartsWithSegments("/metrics")
+          || httpContext.Request.Path.StartsWithSegments("/health")
+            ? Serilog.Events.LogEventLevel.Verbose
+        : Serilog.Events.LogEventLevel.Information;
+
+    // JSON-only on purpose: also the simplest way to skip multipart file
+    // uploads (different Content-Type) without a separate exclude-list —
+    // there's no reason to dump binary payloads into logs as text.
+    options.EnrichDiagnosticContext = async (diagnosticContext, httpContext) =>
+    {
+        var request = httpContext.Request;
+        if (request.ContentLength is > 0 && request.ContentType?.Contains("application/json") == true)
+        {
+            request.Body.Position = 0;
+            using var reader = new StreamReader(request.Body, leaveOpen: true);
+            var body = await reader.ReadToEndAsync();
+            request.Body.Position = 0;
+            diagnosticContext.Set("RequestBody", Portfolio.Api.Logging.RequestBodyRedactor.Redact(body));
+        }
+    };
+});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
