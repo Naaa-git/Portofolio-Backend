@@ -7,5 +7,7 @@ public class JwtOptions
     public string Issuer { get; set; } = default!;
     public string Audience { get; set; } = default!;
     public string SigningKey { get; set; } = default!;
-    public int ExpiresInMinutes { get; set; } = 180;
+    public int ExpiresInMinutes { get; set; } = 30;
+    public int RefreshTokenExpiresInDays { get; set; } = 30;
+    public int RefreshTokenGracePeriodSeconds { get; set; } = 10;
 }

@@ -133,6 +133,7 @@ builder.Services.AddScoped<IOutsideCodeRepository, OutsideCodeRepository>();
 builder.Services.AddScoped<ILessonCategoryRepository, LessonCategoryRepository>();
 builder.Services.AddScoped<ILessonRepository, LessonRepository>();
 builder.Services.AddScoped<IContactMessageRepository, ContactMessageRepository>();
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<ISkillService, SkillService>();
@@ -146,6 +147,8 @@ builder.Services.AddScoped<ILessonCategoryService, LessonCategoryService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
 builder.Services.AddScoped<IContactMessageService, ContactMessageService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+builder.Services.AddSingleton<AccessTokenGenerator>();
 builder.Services.AddSingleton<ITotpService, TotpService>();
 
 // Real production storage mechanism: saves to the VPS's local disk (see LocalDiskFileStorageService).
@@ -229,13 +232,29 @@ builder.Services.AddRateLimiter(options =>
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0,
             }));
+
+    // Silent token refresh is normal app traffic (fired automatically on every
+    // access-token expiry, from possibly several open tabs), not an endpoint
+    // someone brute-forces — so it gets a much looser cap than "auth".
+    options.AddPolicy("refresh", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: GetClientIp(httpContext),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 20,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+            }));
 });
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options =>
 {
+    // AllowCredentials is required for the browser to send/accept the HttpOnly
+    // refresh_token cookie across origins — only safe to combine with specific
+    // WithOrigins (never AllowAnyOrigin, which browsers reject alongside it).
     options.AddPolicy("Frontend", policy =>
-        policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod());
+        policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials());
 });
 
 var app = builder.Build();
