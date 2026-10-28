@@ -82,6 +82,12 @@ services:
     depends_on:
       - postgres
       - opensearch
+    # Without this, every redeploy (pull + recreate) throws away the
+    # container's writable layer — along with any uploaded files that were
+    # only ever living there, not in the image. Named volume survives
+    # recreation the same way postgres_data/opensearch_data etc. already do.
+    volumes:
+      - api_uploads:/app/wwwroot/uploads
 
   frontend:
     image: ${DOCKERHUB_USERNAME}/portfolio-frontend:${FRONTEND_VERSION}
@@ -99,3 +105,4 @@ volumes:
   prometheus_data:
   loki_data:
   grafana_data:
+  api_uploads:
