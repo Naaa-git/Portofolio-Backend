@@ -1,5 +1,4 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Google.Apis.Auth;
@@ -22,7 +21,9 @@ public class AuthService(
     IOptions<JwtOptions> jwtOptions,
     IOptions<GoogleOptions> googleOptions,
     IOptions<MicrosoftOptions> microsoftOptions,
-    ConfigurationManager<OpenIdConnectConfiguration> microsoftConfigManager) : IAuthService
+    ConfigurationManager<OpenIdConnectConfiguration> microsoftConfigManager,
+    AccessTokenGenerator accessTokenGenerator,
+    IRefreshTokenService refreshTokenService) : IAuthService
 {
     private readonly JwtOptions _jwt = jwtOptions.Value;
     private readonly GoogleOptions _google = googleOptions.Value;
@@ -41,7 +42,7 @@ public class AuthService(
     private const int PendingTokenExpiresInMinutes = 5;
     private const int EmailOtpExpiresInMinutes = 10;
 
-    public async Task<LoginResponseDto?> LoginAsync(LoginRequestDto dto)
+    public async Task<AuthResult?> LoginAsync(LoginRequestDto dto)
     {
         var user = await repo.GetByUsernameAsync(dto.Username);
         if (user is null) return null;
@@ -59,10 +60,11 @@ public class AuthService(
         // Path C (password) is paired with Email OTP, not TOTP — by design,
         // independent of whatever user.TotpEnabled is set to (that's for the
         // OAuth paths only).
-        return await IssueEmailOtpChallengeAsync(user);
+        var response = await IssueEmailOtpChallengeAsync(user);
+        return response is null ? null : new AuthResult(response, null);
     }
 
-    public async Task<LoginResponseDto?> GoogleLoginAsync(GoogleLoginRequestDto dto)
+    public async Task<AuthResult?> GoogleLoginAsync(GoogleLoginRequestDto dto)
     {
         GoogleJsonWebSignature.Payload payload;
         try
@@ -85,10 +87,10 @@ public class AuthService(
         var user = await repo.GetByEmailAsync(payload.Email);
         if (user is null) return null;
 
-        return IssueTotpChallengeResult(user);
+        return await IssueTotpChallengeResultAsync(user);
     }
 
-    public async Task<LoginResponseDto?> MicrosoftLoginAsync(MicrosoftLoginRequestDto dto)
+    public async Task<AuthResult?> MicrosoftLoginAsync(MicrosoftLoginRequestDto dto)
     {
         var email = await ValidateMicrosoftIdTokenAsync(dto.IdToken);
         if (email is null) return null;
@@ -98,10 +100,10 @@ public class AuthService(
         var user = await repo.GetByEmailAsync(email);
         if (user is null) return null;
 
-        return IssueTotpChallengeResult(user);
+        return await IssueTotpChallengeResultAsync(user);
     }
 
-    public async Task<LoginResponseDto?> VerifyTotpLoginAsync(VerifyTotpLoginRequestDto dto)
+    public async Task<AuthResult?> VerifyTotpLoginAsync(VerifyTotpLoginRequestDto dto)
     {
         var username = ValidatePendingToken(dto.PendingToken, TotpPendingAudience);
         if (username is null) return null;
@@ -119,11 +121,10 @@ public class AuthService(
 
         await repo.ResetFailedLoginAsync(username);
 
-        var (accessToken, expiresAt) = GenerateToken(user.Username, _jwt.Audience, _jwt.ExpiresInMinutes);
-        return new LoginResponseDto(LoginChallenge.None, accessToken, expiresAt, null);
+        return await IssueFinalLoginAsync(user.Username);
     }
 
-    public async Task<LoginResponseDto?> VerifyEmailOtpLoginAsync(VerifyEmailOtpLoginRequestDto dto)
+    public async Task<AuthResult?> VerifyEmailOtpLoginAsync(VerifyEmailOtpLoginRequestDto dto)
     {
         var username = ValidatePendingToken(dto.PendingToken, EmailOtpPendingAudience);
         if (username is null) return null;
@@ -147,8 +148,7 @@ public class AuthService(
         await repo.ResetFailedLoginAsync(username);
         await repo.ClearEmailOtpAsync(username); // one-time use — consume it immediately
 
-        var (accessToken, expiresAt) = GenerateToken(user.Username, _jwt.Audience, _jwt.ExpiresInMinutes);
-        return new LoginResponseDto(LoginChallenge.None, accessToken, expiresAt, null);
+        return await IssueFinalLoginAsync(user.Username);
     }
 
     public async Task<TotpSetupResponseDto?> SetupTotpAsync(string username)
@@ -210,20 +210,28 @@ public class AuthService(
 
         await repo.SetEmailOtpAsync(user.Username, HashOtpCode(code), DateTime.UtcNow.AddMinutes(EmailOtpExpiresInMinutes));
 
-        var (pendingToken, _) = GenerateToken(user.Username, EmailOtpPendingAudience, PendingTokenExpiresInMinutes);
+        var (pendingToken, _) = accessTokenGenerator.Generate(user.Username, EmailOtpPendingAudience, PendingTokenExpiresInMinutes);
         return new LoginResponseDto(LoginChallenge.EmailOtp, null, null, pendingToken);
     }
 
-    private LoginResponseDto IssueTotpChallengeResult(AdminUser user)
+    private async Task<AuthResult> IssueTotpChallengeResultAsync(AdminUser user)
     {
         if (!user.TotpEnabled)
         {
-            var (accessToken, expiresAt) = GenerateToken(user.Username, _jwt.Audience, _jwt.ExpiresInMinutes);
-            return new LoginResponseDto(LoginChallenge.None, accessToken, expiresAt, null);
+            return await IssueFinalLoginAsync(user.Username);
         }
 
-        var (pendingToken, _) = GenerateToken(user.Username, TotpPendingAudience, PendingTokenExpiresInMinutes);
-        return new LoginResponseDto(LoginChallenge.Totp, null, null, pendingToken);
+        var (pendingToken, _) = accessTokenGenerator.Generate(user.Username, TotpPendingAudience, PendingTokenExpiresInMinutes);
+        return new AuthResult(new LoginResponseDto(LoginChallenge.Totp, null, null, pendingToken), null);
+    }
+
+    // Shared by every path that completes a login (no more 2FA left to do) —
+    // mints the access token and, alongside it, a brand new refresh token.
+    private async Task<AuthResult> IssueFinalLoginAsync(string username)
+    {
+        var (accessToken, expiresAt) = accessTokenGenerator.Generate(username, _jwt.Audience, _jwt.ExpiresInMinutes);
+        var (rawRefreshToken, _) = await refreshTokenService.IssueAsync(username);
+        return new AuthResult(new LoginResponseDto(LoginChallenge.None, accessToken, expiresAt, null), rawRefreshToken);
     }
 
     // Kept in sync with the checklist shown in the frontend form — if you add a
@@ -311,29 +319,6 @@ public class AuthService(
         {
             return null;
         }
-    }
-
-    private (string Token, DateTime ExpiresAt) GenerateToken(string username, string audience, int expiresInMinutes)
-    {
-        var expiresAt = DateTime.UtcNow.AddMinutes(expiresInMinutes);
-
-        var claims = new[]
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, username),
-            new Claim(ClaimTypes.Name, username),
-        };
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.SigningKey));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: _jwt.Issuer,
-            audience: audience,
-            claims: claims,
-            expires: expiresAt,
-            signingCredentials: credentials);
-
-        return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
     }
 
     private string? ValidatePendingToken(string pendingToken, string expectedAudience)

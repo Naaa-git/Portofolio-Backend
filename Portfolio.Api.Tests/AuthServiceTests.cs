@@ -26,7 +26,15 @@ public class AuthServiceTests
             Options.Create(new MicrosoftOptions { ClientId = "test-microsoft-client-id" }),
             new ConfigurationManager<OpenIdConnectConfiguration>(
                 "https://login.microsoftonline.com/consumers/v2.0/.well-known/openid-configuration",
-                new OpenIdConnectConfigurationRetriever()));
+                new OpenIdConnectConfigurationRetriever()),
+            new AccessTokenGenerator(Options.Create(new JwtOptions
+            {
+                Issuer = "test-issuer",
+                Audience = "portofolio-admin",
+                SigningKey = "unit-test-signing-key-at-least-32-characters",
+                ExpiresInMinutes = 180,
+            })),
+            new FakeRefreshTokenService());
 
     private static AdminUser NewUser(string username = "admin", string password = "ChangeMe123!") => new()
     {
@@ -96,7 +104,7 @@ public class AuthServiceTests
         // Still only 2 failed attempts — correct password should still work.
         var result = await service.LoginAsync(new LoginRequestDto("admin", "ChangeMe123!"));
         Assert.NotNull(result);
-        Assert.Equal(LoginChallenge.EmailOtp, result!.Challenge);
+        Assert.Equal(LoginChallenge.EmailOtp, result!.Response.Challenge);
     }
 
     [Fact]
@@ -157,9 +165,9 @@ public class AuthServiceTests
         var result = await service.LoginAsync(new LoginRequestDto("admin", "ChangeMe123!"));
 
         Assert.NotNull(result);
-        Assert.Equal(LoginChallenge.EmailOtp, result!.Challenge);
-        Assert.NotNull(result.PendingToken);
-        Assert.Null(result.AccessToken); // not logged in yet — still needs the OTP step
+        Assert.Equal(LoginChallenge.EmailOtp, result!.Response.Challenge);
+        Assert.NotNull(result.Response.PendingToken);
+        Assert.Null(result.Response.AccessToken); // not logged in yet — still needs the OTP step
         Assert.Equal("admin@example.com", otpEmailProducer.LastSentTo);
         Assert.NotNull(otpEmailProducer.LastSentCode);
     }
@@ -173,11 +181,25 @@ public class AuthServiceTests
         var service = CreateAuthService(repo, otpEmailProducer);
 
         var login = await service.LoginAsync(new LoginRequestDto("admin", "ChangeMe123!"));
-        var verify = await service.VerifyEmailOtpLoginAsync(new VerifyEmailOtpLoginRequestDto(login!.PendingToken!, otpEmailProducer.LastSentCode!));
+        var verify = await service.VerifyEmailOtpLoginAsync(new VerifyEmailOtpLoginRequestDto(login!.Response.PendingToken!, otpEmailProducer.LastSentCode!));
 
         Assert.NotNull(verify);
-        Assert.Equal(LoginChallenge.None, verify!.Challenge);
-        Assert.NotNull(verify.AccessToken);
+        Assert.Equal(LoginChallenge.None, verify!.Response.Challenge);
+        Assert.NotNull(verify.Response.AccessToken);
+        Assert.NotNull(verify.RawRefreshToken); // completed login must also hand back a refresh token
+    }
+
+    [Fact]
+    public async Task LoginAsync_StillPendingOtp_DoesNotIssueARefreshTokenYet()
+    {
+        var repo = new FakeAdminUserRepository();
+        repo.Add(NewUser());
+        var service = CreateAuthService(repo, new FakeOtpEmailProducer());
+
+        var login = await service.LoginAsync(new LoginRequestDto("admin", "ChangeMe123!"));
+
+        Assert.NotNull(login);
+        Assert.Null(login!.RawRefreshToken); // 2FA not completed — no refresh token until login actually finishes
     }
 
     [Fact]
@@ -189,7 +211,7 @@ public class AuthServiceTests
         var service = CreateAuthService(repo, otpEmailProducer);
 
         var login = await service.LoginAsync(new LoginRequestDto("admin", "ChangeMe123!"));
-        var verify = await service.VerifyEmailOtpLoginAsync(new VerifyEmailOtpLoginRequestDto(login!.PendingToken!, "000000"));
+        var verify = await service.VerifyEmailOtpLoginAsync(new VerifyEmailOtpLoginRequestDto(login!.Response.PendingToken!, "000000"));
 
         Assert.Null(verify);
     }
@@ -205,12 +227,12 @@ public class AuthServiceTests
         var login = await service.LoginAsync(new LoginRequestDto("admin", "ChangeMe123!"));
         var code = otpEmailProducer.LastSentCode!;
 
-        var first = await service.VerifyEmailOtpLoginAsync(new VerifyEmailOtpLoginRequestDto(login!.PendingToken!, code));
+        var first = await service.VerifyEmailOtpLoginAsync(new VerifyEmailOtpLoginRequestDto(login!.Response.PendingToken!, code));
         Assert.NotNull(first); // consumes it
 
         // The pending token itself is also single-purpose/short-lived, but even
         // ignoring that: the OTP hash was cleared after the first successful use.
-        var replay = await service.VerifyEmailOtpLoginAsync(new VerifyEmailOtpLoginRequestDto(login.PendingToken!, code));
+        var replay = await service.VerifyEmailOtpLoginAsync(new VerifyEmailOtpLoginRequestDto(login.Response.PendingToken!, code));
         Assert.Null(replay);
     }
 
@@ -227,10 +249,10 @@ public class AuthServiceTests
         var service = CreateAuthService(repo, new FakeOtpEmailProducer());
 
         var login = await service.LoginAsync(new LoginRequestDto("admin", "ChangeMe123!"));
-        Assert.Equal(LoginChallenge.EmailOtp, login!.Challenge);
+        Assert.Equal(LoginChallenge.EmailOtp, login!.Response.Challenge);
 
         // Try to spend the email-otp pending token on the TOTP verify endpoint instead.
-        var result = await service.VerifyTotpLoginAsync(new VerifyTotpLoginRequestDto(login.PendingToken!, "123456"));
+        var result = await service.VerifyTotpLoginAsync(new VerifyTotpLoginRequestDto(login.Response.PendingToken!, "123456"));
 
         Assert.Null(result);
     }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 using Portfolio.Api.Models.Dto;
 using Portfolio.Api.Services;
 
@@ -9,41 +10,80 @@ namespace Portfolio.Api.Controllers;
 [ApiController]
 [Route("api/auth")]
 [EnableRateLimiting("auth")]
-public class AuthController(IAuthService authService) : ControllerBase
+public class AuthController(
+    IAuthService authService,
+    IRefreshTokenService refreshTokenService,
+    IOptions<JwtOptions> jwtOptions) : ControllerBase
 {
+    private const string RefreshCookieName = "refresh_token";
+    private readonly JwtOptions _jwt = jwtOptions.Value;
+
     [HttpPost("login")]
     public async Task<ActionResult<LoginResponseDto>> Login(LoginRequestDto dto)
     {
         var result = await authService.LoginAsync(dto);
-        return result is null ? Unauthorized() : Ok(result);
+        return RespondWithAuthResult(result);
     }
 
     [HttpPost("google")]
     public async Task<ActionResult<LoginResponseDto>> GoogleLogin(GoogleLoginRequestDto dto)
     {
         var result = await authService.GoogleLoginAsync(dto);
-        return result is null ? Unauthorized() : Ok(result);
+        return RespondWithAuthResult(result);
     }
 
     [HttpPost("microsoft")]
     public async Task<ActionResult<LoginResponseDto>> MicrosoftLogin(MicrosoftLoginRequestDto dto)
     {
         var result = await authService.MicrosoftLoginAsync(dto);
-        return result is null ? Unauthorized() : Ok(result);
+        return RespondWithAuthResult(result);
     }
 
     [HttpPost("login/verify-totp")]
     public async Task<ActionResult<LoginResponseDto>> VerifyTotpLogin(VerifyTotpLoginRequestDto dto)
     {
         var result = await authService.VerifyTotpLoginAsync(dto);
-        return result is null ? Unauthorized() : Ok(result);
+        return RespondWithAuthResult(result);
     }
 
     [HttpPost("login/verify-email-otp")]
     public async Task<ActionResult<LoginResponseDto>> VerifyEmailOtpLogin(VerifyEmailOtpLoginRequestDto dto)
     {
         var result = await authService.VerifyEmailOtpLoginAsync(dto);
-        return result is null ? Unauthorized() : Ok(result);
+        return RespondWithAuthResult(result);
+    }
+
+    // Called automatically by the frontend when an access token expires — relies
+    // on the HttpOnly refresh_token cookie, not on the (expired) Authorization
+    // header, so this deliberately has no [Authorize].
+    [HttpPost("refresh")]
+    [EnableRateLimiting("refresh")]
+    public async Task<IActionResult> Refresh()
+    {
+        if (!Request.Cookies.TryGetValue(RefreshCookieName, out var rawToken))
+            return Unauthorized();
+
+        var result = await refreshTokenService.RefreshAsync(rawToken);
+        if (result is null)
+        {
+            Response.Cookies.Delete(RefreshCookieName, new CookieOptions { Path = "/api/auth" });
+            return Unauthorized();
+        }
+
+        SetRefreshCookie(result.RawRefreshToken);
+        return Ok(new { accessToken = result.AccessToken, expiresAtUtc = result.AccessTokenExpiresAtUtc });
+    }
+
+    // No [Authorize] — logout must work even when the access token has already
+    // expired, which is the most common reason someone hits this endpoint.
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        if (Request.Cookies.TryGetValue(RefreshCookieName, out var rawToken))
+            await refreshTokenService.RevokeAsync(rawToken);
+
+        Response.Cookies.Delete(RefreshCookieName, new CookieOptions { Path = "/api/auth" });
+        return NoContent();
     }
 
     [HttpPost("totp/setup")]
@@ -73,5 +113,24 @@ public class AuthController(IAuthService authService) : ControllerBase
         return success
             ? NoContent()
             : BadRequest(new { message = "Password saat ini salah, atau password baru belum memenuhi aturan (min. 8 karakter, ada huruf besar, ada angka)." });
+    }
+
+    private ActionResult<LoginResponseDto> RespondWithAuthResult(Services.AuthResult? result)
+    {
+        if (result is null) return Unauthorized();
+        if (result.RawRefreshToken is not null) SetRefreshCookie(result.RawRefreshToken);
+        return Ok(result.Response);
+    }
+
+    private void SetRefreshCookie(string rawToken)
+    {
+        Response.Cookies.Append(RefreshCookieName, rawToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Path = "/api/auth",
+            Expires = DateTimeOffset.UtcNow.AddDays(_jwt.RefreshTokenExpiresInDays),
+        });
     }
 }
