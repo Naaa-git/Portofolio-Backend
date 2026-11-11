@@ -14,6 +14,6 @@ public record LessonAdminDto(
 public record LessonUpsertDto(
     [Range(1, int.MaxValue)] int CategoryId,
     [TranslatableStringLength(150, MinimumLength = 1)] Dictionary<string, string> Title,
-    [TranslatableStringLength(2000, MinimumLength = 1)] Dictionary<string, string> Description,
+    [TranslatableStringLength(5000, MinimumLength = 1)] Dictionary<string, string> Description,
     int? ProjectId,
     int? ExperienceId);
