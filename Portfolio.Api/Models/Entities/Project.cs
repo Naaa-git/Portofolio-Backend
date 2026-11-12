@@ -14,6 +14,7 @@ public class Project
     public string? GithubUrl { get; set; }
     public string? DemoUrl { get; set; }
     public bool Featured { get; set; }
+    public bool IsPublished { get; set; } = true;
     public ProjectCategory Category { get; set; }
 
     // Nullable — most projects (personal/freelance) aren't tied to any job.

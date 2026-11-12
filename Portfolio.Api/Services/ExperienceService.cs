@@ -8,7 +8,7 @@ namespace Portfolio.Api.Services;
 public class ExperienceService(IExperienceRepository repo) : IExperienceService
 {
     public async Task<List<ExperienceDto>> GetAllAsync(string lang) =>
-        (await repo.GetAllAsync()).Select(e => ToDto(e, lang)).ToList();
+        (await repo.GetAllAsync()).Where(e => e.IsPublished).Select(e => ToDto(e, lang)).ToList();
 
     public async Task<List<ExperienceAdminDto>> GetAllAdminAsync() =>
         (await repo.GetAllAsync()).Select(ToAdminDto).ToList();
@@ -19,6 +19,7 @@ public class ExperienceService(IExperienceRepository repo) : IExperienceService
         {
             Company = dto.Company, Role = dto.Role, Type = dto.Type, StartDate = dto.StartDate, EndDate = dto.EndDate,
             Location = dto.Location, Current = dto.Current, Description = dto.Description, Skills = dto.Skills,
+            IsPublished = dto.IsPublished,
         };
         var created = await repo.AddAsync(entity);
         return ToAdminDto(created);
@@ -28,6 +29,7 @@ public class ExperienceService(IExperienceRepository repo) : IExperienceService
     {
         Id = id, Company = dto.Company, Role = dto.Role, Type = dto.Type, StartDate = dto.StartDate, EndDate = dto.EndDate,
         Location = dto.Location, Current = dto.Current, Description = dto.Description, Skills = dto.Skills,
+        IsPublished = dto.IsPublished,
     });
 
     public Task<bool> DeleteAsync(int id) => repo.DeleteAsync(id);
@@ -41,5 +43,5 @@ public class ExperienceService(IExperienceRepository repo) : IExperienceService
 
     private static ExperienceAdminDto ToAdminDto(Experience e) => new(
         e.Id, e.Company, e.Role, e.Type, e.StartDate, e.EndDate, e.Location, e.Current,
-        e.Description, e.Skills, e.Projects.Select(p => p.Id).ToList());
+        e.Description, e.Skills, e.Projects.Select(p => p.Id).ToList(), e.IsPublished);
 }

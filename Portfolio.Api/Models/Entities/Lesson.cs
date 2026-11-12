@@ -17,4 +17,6 @@ public class Lesson
 
     public int? ExperienceId { get; set; }
     public Experience? Experience { get; set; }
+
+    public bool IsPublished { get; set; } = true;
 }

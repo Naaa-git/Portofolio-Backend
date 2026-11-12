@@ -19,6 +19,7 @@ public class AwayFromKeyboardItem
     public Dictionary<string, string> Note { get; set; } = new();
     public string? ImageUrl { get; set; }
     public int SortOrder { get; set; }
+    public bool IsPublished { get; set; } = true;
 }
 
 public class MovieTake
@@ -28,6 +29,7 @@ public class MovieTake
     public Dictionary<string, string> Take { get; set; } = new();
     public string? ImageUrl { get; set; }
     public int SortOrder { get; set; }
+    public bool IsPublished { get; set; } = true;
 }
 
 public class MusicArtist
@@ -37,6 +39,7 @@ public class MusicArtist
     public string Url { get; set; } = default!;
     public string? ImageUrl { get; set; }
     public int SortOrder { get; set; }
+    public bool IsPublished { get; set; } = true;
 }
 
 public class PodcastChannel
@@ -46,6 +49,7 @@ public class PodcastChannel
     public string Url { get; set; } = default!;
     public string? ImageUrl { get; set; }
     public int SortOrder { get; set; }
+    public bool IsPublished { get; set; } = true;
 }
 
 public class OutsideCodeBook
@@ -57,6 +61,7 @@ public class OutsideCodeBook
     public string? ImageUrl { get; set; }
     public bool IsCurrentlyReading { get; set; }
     public int SortOrder { get; set; }
+    public bool IsPublished { get; set; } = true;
 }
 
 public class LifeInspiration
@@ -69,4 +74,5 @@ public class LifeInspiration
     public Dictionary<string, string> Note { get; set; } = new();
     public string? ImageUrl { get; set; }
     public int SortOrder { get; set; }
+    public bool IsPublished { get; set; } = true;
 }

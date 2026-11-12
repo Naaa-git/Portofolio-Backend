@@ -79,6 +79,7 @@ public class ProjectSearchService : IProjectSearchService
             .Index(IndexName)
             .Query(q => q
                 .Bool(b => b
+                    .Filter(f => f.Term(t => t.Field(d => d.IsPublished).Value(true)))
                     .Should(
                         sh => sh.MultiMatch(m => m
                             .Query(query)
@@ -123,6 +124,7 @@ public class ProjectSearchService : IProjectSearchService
         GithubUrl = p.GithubUrl,
         DemoUrl = p.DemoUrl,
         Featured = p.Featured,
+        IsPublished = p.IsPublished,
         ExperienceCompany = p.Experience?.Company,
     };
 

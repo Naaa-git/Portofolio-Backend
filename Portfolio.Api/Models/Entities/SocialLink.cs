@@ -6,4 +6,5 @@ public class SocialLink
     public string Name { get; set; } = default!;
     public string Url { get; set; } = default!;
     public string Icon { get; set; } = default!;
+    public bool IsPublished { get; set; } = true;
 }

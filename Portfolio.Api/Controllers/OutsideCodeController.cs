@@ -89,9 +89,14 @@ public class OutsideCodeController(IOutsideCodeService service) : ControllerBase
     public async Task<ActionResult<List<MusicArtistDto>>> GetMusicArtists() =>
         Ok(await service.GetMusicArtistsAsync());
 
+    [HttpGet("music/admin")]
+    [Authorize]
+    public async Task<ActionResult<List<MusicArtistAdminDto>>> GetMusicArtistsAdmin() =>
+        Ok(await service.GetMusicArtistsAdminAsync());
+
     [HttpPost("music")]
     [Authorize]
-    public async Task<ActionResult<MusicArtistDto>> AddMusicArtist(MusicArtistUpsertDto dto) =>
+    public async Task<ActionResult<MusicArtistAdminDto>> AddMusicArtist(MusicArtistUpsertDto dto) =>
         Ok(await service.AddMusicArtistAsync(dto));
 
     [HttpPut("music/{id:int}")]
@@ -110,9 +115,14 @@ public class OutsideCodeController(IOutsideCodeService service) : ControllerBase
     public async Task<ActionResult<List<PodcastChannelDto>>> GetPodcasts() =>
         Ok(await service.GetPodcastsAsync());
 
+    [HttpGet("podcasts/admin")]
+    [Authorize]
+    public async Task<ActionResult<List<PodcastChannelAdminDto>>> GetPodcastsAdmin() =>
+        Ok(await service.GetPodcastsAdminAsync());
+
     [HttpPost("podcasts")]
     [Authorize]
-    public async Task<ActionResult<PodcastChannelDto>> AddPodcast(PodcastChannelUpsertDto dto) =>
+    public async Task<ActionResult<PodcastChannelAdminDto>> AddPodcast(PodcastChannelUpsertDto dto) =>
         Ok(await service.AddPodcastAsync(dto));
 
     [HttpPut("podcasts/{id:int}")]

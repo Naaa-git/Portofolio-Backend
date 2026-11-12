@@ -31,27 +31,28 @@ public class OutsideCodeService(IOutsideCodeRepository repo) : IOutsideCodeServi
 
     public async Task<List<AwayFromKeyboardItemDto>> GetAwayFromKeyboardAsync(string lang) =>
         (await repo.GetAwayFromKeyboardAsync())
+            .Where(x => x.IsPublished)
             .Select(x => new AwayFromKeyboardItemDto(x.Id, x.Title.Resolve(lang), x.Note.Resolve(lang), x.ImageUrl, x.SortOrder))
             .ToList();
 
     public async Task<List<AwayFromKeyboardItemAdminDto>> GetAwayFromKeyboardAdminAsync() =>
         (await repo.GetAwayFromKeyboardAsync())
-            .Select(x => new AwayFromKeyboardItemAdminDto(x.Id, x.Title, x.Note, x.ImageUrl, x.SortOrder))
+            .Select(x => new AwayFromKeyboardItemAdminDto(x.Id, x.Title, x.Note, x.ImageUrl, x.SortOrder, x.IsPublished))
             .ToList();
 
     public async Task<AwayFromKeyboardItemAdminDto> AddAwayFromKeyboardAsync(AwayFromKeyboardItemUpsertDto dto)
     {
         var created = await repo.AddAwayFromKeyboardAsync(new AwayFromKeyboardItem
         {
-            Title = dto.Title, Note = dto.Note, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder,
+            Title = dto.Title, Note = dto.Note, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder, IsPublished = dto.IsPublished,
         });
-        return new AwayFromKeyboardItemAdminDto(created.Id, created.Title, created.Note, created.ImageUrl, created.SortOrder);
+        return new AwayFromKeyboardItemAdminDto(created.Id, created.Title, created.Note, created.ImageUrl, created.SortOrder, created.IsPublished);
     }
 
     public Task<bool> UpdateAwayFromKeyboardAsync(int id, AwayFromKeyboardItemUpsertDto dto) =>
         repo.UpdateAwayFromKeyboardAsync(new AwayFromKeyboardItem
         {
-            Id = id, Title = dto.Title, Note = dto.Note, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder,
+            Id = id, Title = dto.Title, Note = dto.Note, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder, IsPublished = dto.IsPublished,
         });
 
     public Task<bool> DeleteAwayFromKeyboardAsync(int id) => repo.DeleteAwayFromKeyboardAsync(id);
@@ -60,27 +61,28 @@ public class OutsideCodeService(IOutsideCodeRepository repo) : IOutsideCodeServi
 
     public async Task<List<MovieTakeDto>> GetMoviesAsync(string lang) =>
         (await repo.GetMoviesAsync())
+            .Where(x => x.IsPublished)
             .Select(x => new MovieTakeDto(x.Id, x.Title, x.Take.Resolve(lang), x.ImageUrl, x.SortOrder))
             .ToList();
 
     public async Task<List<MovieTakeAdminDto>> GetMoviesAdminAsync() =>
         (await repo.GetMoviesAsync())
-            .Select(x => new MovieTakeAdminDto(x.Id, x.Title, x.Take, x.ImageUrl, x.SortOrder))
+            .Select(x => new MovieTakeAdminDto(x.Id, x.Title, x.Take, x.ImageUrl, x.SortOrder, x.IsPublished))
             .ToList();
 
     public async Task<MovieTakeAdminDto> AddMovieAsync(MovieTakeUpsertDto dto)
     {
         var created = await repo.AddMovieAsync(new MovieTake
         {
-            Title = dto.Title, Take = dto.Take, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder,
+            Title = dto.Title, Take = dto.Take, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder, IsPublished = dto.IsPublished,
         });
-        return new MovieTakeAdminDto(created.Id, created.Title, created.Take, created.ImageUrl, created.SortOrder);
+        return new MovieTakeAdminDto(created.Id, created.Title, created.Take, created.ImageUrl, created.SortOrder, created.IsPublished);
     }
 
     public Task<bool> UpdateMovieAsync(int id, MovieTakeUpsertDto dto) =>
         repo.UpdateMovieAsync(new MovieTake
         {
-            Id = id, Title = dto.Title, Take = dto.Take, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder,
+            Id = id, Title = dto.Title, Take = dto.Take, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder, IsPublished = dto.IsPublished,
         });
 
     public Task<bool> DeleteMovieAsync(int id) => repo.DeleteMovieAsync(id);
@@ -89,22 +91,28 @@ public class OutsideCodeService(IOutsideCodeRepository repo) : IOutsideCodeServi
 
     public async Task<List<MusicArtistDto>> GetMusicArtistsAsync() =>
         (await repo.GetMusicArtistsAsync())
+            .Where(x => x.IsPublished)
             .Select(x => new MusicArtistDto(x.Id, x.Name, x.Url, x.ImageUrl, x.SortOrder))
             .ToList();
 
-    public async Task<MusicArtistDto> AddMusicArtistAsync(MusicArtistUpsertDto dto)
+    public async Task<List<MusicArtistAdminDto>> GetMusicArtistsAdminAsync() =>
+        (await repo.GetMusicArtistsAsync())
+            .Select(x => new MusicArtistAdminDto(x.Id, x.Name, x.Url, x.ImageUrl, x.SortOrder, x.IsPublished))
+            .ToList();
+
+    public async Task<MusicArtistAdminDto> AddMusicArtistAsync(MusicArtistUpsertDto dto)
     {
         var created = await repo.AddMusicArtistAsync(new MusicArtist
         {
-            Name = dto.Name, Url = dto.Url, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder,
+            Name = dto.Name, Url = dto.Url, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder, IsPublished = dto.IsPublished,
         });
-        return new MusicArtistDto(created.Id, created.Name, created.Url, created.ImageUrl, created.SortOrder);
+        return new MusicArtistAdminDto(created.Id, created.Name, created.Url, created.ImageUrl, created.SortOrder, created.IsPublished);
     }
 
     public Task<bool> UpdateMusicArtistAsync(int id, MusicArtistUpsertDto dto) =>
         repo.UpdateMusicArtistAsync(new MusicArtist
         {
-            Id = id, Name = dto.Name, Url = dto.Url, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder,
+            Id = id, Name = dto.Name, Url = dto.Url, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder, IsPublished = dto.IsPublished,
         });
 
     public Task<bool> DeleteMusicArtistAsync(int id) => repo.DeleteMusicArtistAsync(id);
@@ -113,22 +121,28 @@ public class OutsideCodeService(IOutsideCodeRepository repo) : IOutsideCodeServi
 
     public async Task<List<PodcastChannelDto>> GetPodcastsAsync() =>
         (await repo.GetPodcastsAsync())
+            .Where(x => x.IsPublished)
             .Select(x => new PodcastChannelDto(x.Id, x.Name, x.Url, x.ImageUrl, x.SortOrder))
             .ToList();
 
-    public async Task<PodcastChannelDto> AddPodcastAsync(PodcastChannelUpsertDto dto)
+    public async Task<List<PodcastChannelAdminDto>> GetPodcastsAdminAsync() =>
+        (await repo.GetPodcastsAsync())
+            .Select(x => new PodcastChannelAdminDto(x.Id, x.Name, x.Url, x.ImageUrl, x.SortOrder, x.IsPublished))
+            .ToList();
+
+    public async Task<PodcastChannelAdminDto> AddPodcastAsync(PodcastChannelUpsertDto dto)
     {
         var created = await repo.AddPodcastAsync(new PodcastChannel
         {
-            Name = dto.Name, Url = dto.Url, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder,
+            Name = dto.Name, Url = dto.Url, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder, IsPublished = dto.IsPublished,
         });
-        return new PodcastChannelDto(created.Id, created.Name, created.Url, created.ImageUrl, created.SortOrder);
+        return new PodcastChannelAdminDto(created.Id, created.Name, created.Url, created.ImageUrl, created.SortOrder, created.IsPublished);
     }
 
     public Task<bool> UpdatePodcastAsync(int id, PodcastChannelUpsertDto dto) =>
         repo.UpdatePodcastAsync(new PodcastChannel
         {
-            Id = id, Name = dto.Name, Url = dto.Url, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder,
+            Id = id, Name = dto.Name, Url = dto.Url, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder, IsPublished = dto.IsPublished,
         });
 
     public Task<bool> DeletePodcastAsync(int id) => repo.DeletePodcastAsync(id);
@@ -137,12 +151,13 @@ public class OutsideCodeService(IOutsideCodeRepository repo) : IOutsideCodeServi
 
     public async Task<List<OutsideCodeBookDto>> GetBooksAsync(string lang) =>
         (await repo.GetBooksAsync())
+            .Where(x => x.IsPublished)
             .Select(x => new OutsideCodeBookDto(x.Id, x.Title, x.Author, x.Note.Resolve(lang), x.ImageUrl, x.IsCurrentlyReading, x.SortOrder))
             .ToList();
 
     public async Task<List<OutsideCodeBookAdminDto>> GetBooksAdminAsync() =>
         (await repo.GetBooksAsync())
-            .Select(x => new OutsideCodeBookAdminDto(x.Id, x.Title, x.Author, x.Note, x.ImageUrl, x.IsCurrentlyReading, x.SortOrder))
+            .Select(x => new OutsideCodeBookAdminDto(x.Id, x.Title, x.Author, x.Note, x.ImageUrl, x.IsCurrentlyReading, x.SortOrder, x.IsPublished))
             .ToList();
 
     public async Task<OutsideCodeBookAdminDto> AddBookAsync(OutsideCodeBookUpsertDto dto)
@@ -150,16 +165,16 @@ public class OutsideCodeService(IOutsideCodeRepository repo) : IOutsideCodeServi
         var created = await repo.AddBookAsync(new OutsideCodeBook
         {
             Title = dto.Title, Author = dto.Author, Note = dto.Note, ImageUrl = dto.ImageUrl,
-            IsCurrentlyReading = dto.IsCurrentlyReading, SortOrder = dto.SortOrder,
+            IsCurrentlyReading = dto.IsCurrentlyReading, SortOrder = dto.SortOrder, IsPublished = dto.IsPublished,
         });
-        return new OutsideCodeBookAdminDto(created.Id, created.Title, created.Author, created.Note, created.ImageUrl, created.IsCurrentlyReading, created.SortOrder);
+        return new OutsideCodeBookAdminDto(created.Id, created.Title, created.Author, created.Note, created.ImageUrl, created.IsCurrentlyReading, created.SortOrder, created.IsPublished);
     }
 
     public Task<bool> UpdateBookAsync(int id, OutsideCodeBookUpsertDto dto) =>
         repo.UpdateBookAsync(new OutsideCodeBook
         {
             Id = id, Title = dto.Title, Author = dto.Author, Note = dto.Note, ImageUrl = dto.ImageUrl,
-            IsCurrentlyReading = dto.IsCurrentlyReading, SortOrder = dto.SortOrder,
+            IsCurrentlyReading = dto.IsCurrentlyReading, SortOrder = dto.SortOrder, IsPublished = dto.IsPublished,
         });
 
     public Task<bool> DeleteBookAsync(int id) => repo.DeleteBookAsync(id);
@@ -168,27 +183,28 @@ public class OutsideCodeService(IOutsideCodeRepository repo) : IOutsideCodeServi
 
     public async Task<List<LifeInspirationDto>> GetLifeInspirationsAsync(string lang) =>
         (await repo.GetLifeInspirationsAsync())
+            .Where(x => x.IsPublished)
             .Select(x => new LifeInspirationDto(x.Id, x.Name, x.Aspect.Resolve(lang), x.Note.Resolve(lang), x.ImageUrl, x.SortOrder))
             .ToList();
 
     public async Task<List<LifeInspirationAdminDto>> GetLifeInspirationsAdminAsync() =>
         (await repo.GetLifeInspirationsAsync())
-            .Select(x => new LifeInspirationAdminDto(x.Id, x.Name, x.Aspect, x.Note, x.ImageUrl, x.SortOrder))
+            .Select(x => new LifeInspirationAdminDto(x.Id, x.Name, x.Aspect, x.Note, x.ImageUrl, x.SortOrder, x.IsPublished))
             .ToList();
 
     public async Task<LifeInspirationAdminDto> AddLifeInspirationAsync(LifeInspirationUpsertDto dto)
     {
         var created = await repo.AddLifeInspirationAsync(new LifeInspiration
         {
-            Name = dto.Name, Aspect = dto.Aspect, Note = dto.Note, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder,
+            Name = dto.Name, Aspect = dto.Aspect, Note = dto.Note, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder, IsPublished = dto.IsPublished,
         });
-        return new LifeInspirationAdminDto(created.Id, created.Name, created.Aspect, created.Note, created.ImageUrl, created.SortOrder);
+        return new LifeInspirationAdminDto(created.Id, created.Name, created.Aspect, created.Note, created.ImageUrl, created.SortOrder, created.IsPublished);
     }
 
     public Task<bool> UpdateLifeInspirationAsync(int id, LifeInspirationUpsertDto dto) =>
         repo.UpdateLifeInspirationAsync(new LifeInspiration
         {
-            Id = id, Name = dto.Name, Aspect = dto.Aspect, Note = dto.Note, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder,
+            Id = id, Name = dto.Name, Aspect = dto.Aspect, Note = dto.Note, ImageUrl = dto.ImageUrl, SortOrder = dto.SortOrder, IsPublished = dto.IsPublished,
         });
 
     public Task<bool> DeleteLifeInspirationAsync(int id) => repo.DeleteLifeInspirationAsync(id);

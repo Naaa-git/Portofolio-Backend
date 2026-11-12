@@ -12,7 +12,7 @@ public record ProjectDto(
 public record ProjectAdminDto(
     int Id, string Title, string Slug, Dictionary<string, string> ShortDescription, List<Dictionary<string, string>> Contribution,
     List<string> TechStack, string ImageUrl, string? GithubUrl, string? DemoUrl,
-    bool Featured, ProjectCategory Category);
+    bool Featured, ProjectCategory Category, bool IsPublished);
 
 public record ProjectUpsertDto(
     [Required, StringLength(150)] string Title,
@@ -24,4 +24,5 @@ public record ProjectUpsertDto(
     [Url, StringLength(500)] string? GithubUrl,
     [Url, StringLength(500)] string? DemoUrl,
     bool Featured,
-    ProjectCategory Category);
+    ProjectCategory Category,
+    bool IsPublished);

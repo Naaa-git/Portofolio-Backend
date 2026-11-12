@@ -112,6 +112,9 @@ namespace Portfolio.Api.Data.Migrations
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Note")
                         .IsRequired()
                         .HasColumnType("jsonb");
@@ -187,6 +190,9 @@ namespace Portfolio.Api.Data.Migrations
                     b.Property<DateOnly?>("EndDate")
                         .HasColumnType("date");
 
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("text");
@@ -228,6 +234,9 @@ namespace Portfolio.Api.Data.Migrations
 
                     b.Property<int?>("ExperienceId")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
 
                     b.Property<int?>("ProjectId")
                         .HasColumnType("integer");
@@ -282,6 +291,9 @@ namespace Portfolio.Api.Data.Migrations
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -309,6 +321,9 @@ namespace Portfolio.Api.Data.Migrations
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 
@@ -335,6 +350,9 @@ namespace Portfolio.Api.Data.Migrations
 
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -368,6 +386,9 @@ namespace Portfolio.Api.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<bool>("IsCurrentlyReading")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPublished")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Note")
@@ -417,6 +438,9 @@ namespace Portfolio.Api.Data.Migrations
 
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -525,6 +549,9 @@ namespace Portfolio.Api.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("ShortDescription")
                         .IsRequired()
                         .HasColumnType("jsonb");
@@ -598,6 +625,9 @@ namespace Portfolio.Api.Data.Migrations
                         .IsRequired()
                         .HasColumnType("jsonb");
 
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
+
                     b.PrimitiveCollection<List<string>>("Items")
                         .IsRequired()
                         .HasColumnType("text[]");
@@ -621,6 +651,9 @@ namespace Portfolio.Api.Data.Migrations
                     b.Property<string>("Icon")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()

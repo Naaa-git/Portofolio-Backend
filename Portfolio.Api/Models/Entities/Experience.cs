@@ -13,6 +13,7 @@ public class Experience
     public bool Current { get; set; }
     public Dictionary<string, string> Description { get; set; } = new();
     public List<string> Skills { get; set; } = new();
+    public bool IsPublished { get; set; } = true;
 
     public ICollection<Project> Projects { get; set; } = new List<Project>();
 }

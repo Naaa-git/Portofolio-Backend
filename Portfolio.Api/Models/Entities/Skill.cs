@@ -6,4 +6,5 @@ public class Skill
     public Dictionary<string, string> Category { get; set; } = new();
     public List<string> Items { get; set; } = new();
     public int SortOrder { get; set; }
+    public bool IsPublished { get; set; } = true;
 }

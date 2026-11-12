@@ -8,12 +8,12 @@ namespace Portfolio.Api.Services;
 public class ProjectService(IProjectRepository repo, IProjectSearchService searchService) : IProjectService
 {
     public async Task<List<ProjectDto>> GetAllAsync(string lang) =>
-        (await repo.GetAllAsync()).Select(p => ToDto(p, lang)).ToList();
+        (await repo.GetAllAsync()).Where(p => p.IsPublished).Select(p => ToDto(p, lang)).ToList();
 
     public async Task<ProjectDto?> GetBySlugAsync(string slug, string lang)
     {
         var project = await repo.GetBySlugAsync(slug);
-        return project is null ? null : ToDto(project, lang);
+        return project is null || !project.IsPublished ? null : ToDto(project, lang);
     }
 
     public async Task<List<ProjectAdminDto>> GetAllAdminAsync() =>
@@ -28,6 +28,7 @@ public class ProjectService(IProjectRepository repo, IProjectSearchService searc
             Title = dto.Title, Slug = dto.Slug, ShortDescription = dto.ShortDescription,
             Contribution = dto.Contribution, TechStack = dto.TechStack, ImageUrl = dto.ImageUrl,
             GithubUrl = dto.GithubUrl, DemoUrl = dto.DemoUrl, Featured = dto.Featured, Category = dto.Category,
+            IsPublished = dto.IsPublished,
         };
         var created = await repo.AddAsync(entity);
         await searchService.IndexAsync(created);
@@ -46,6 +47,7 @@ public class ProjectService(IProjectRepository repo, IProjectSearchService searc
             Id = id, Title = dto.Title, Slug = dto.Slug, ShortDescription = dto.ShortDescription,
             Contribution = dto.Contribution, TechStack = dto.TechStack, ImageUrl = dto.ImageUrl,
             GithubUrl = dto.GithubUrl, DemoUrl = dto.DemoUrl, Featured = dto.Featured, Category = dto.Category,
+            IsPublished = dto.IsPublished,
             ExperienceId = existingExperienceId,
         };
         var updated = await repo.UpdateAsync(entity);
@@ -66,5 +68,5 @@ public class ProjectService(IProjectRepository repo, IProjectSearchService searc
 
     private static ProjectAdminDto ToAdminDto(Project p) => new(
         p.Id, p.Title, p.Slug, p.ShortDescription, p.Contribution, p.TechStack,
-        p.ImageUrl, p.GithubUrl, p.DemoUrl, p.Featured, p.Category);
+        p.ImageUrl, p.GithubUrl, p.DemoUrl, p.Featured, p.Category, p.IsPublished);
 }

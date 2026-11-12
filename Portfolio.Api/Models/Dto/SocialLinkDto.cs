@@ -4,7 +4,10 @@ namespace Portfolio.Api.Models.Dto;
 
 public record SocialLinkDto(int Id, string Name, string Url, string Icon);
 
+public record SocialLinkAdminDto(int Id, string Name, string Url, string Icon, bool IsPublished);
+
 public record SocialLinkUpsertDto(
     [Required, StringLength(50)] string Name,
     [Required, Url, StringLength(500)] string Url,
-    [Required, StringLength(50)] string Icon);
+    [Required, StringLength(50)] string Icon,
+    bool IsPublished);

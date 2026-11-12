@@ -8,7 +8,7 @@ namespace Portfolio.Api.Services;
 public class LessonService(ILessonRepository repo) : ILessonService
 {
     public async Task<List<LessonDto>> GetAllAsync(string lang) =>
-        (await repo.GetAllAsync()).Select(l => ToDto(l, lang)).ToList();
+        (await repo.GetAllAsync()).Where(l => l.IsPublished).Select(l => ToDto(l, lang)).ToList();
 
     public async Task<List<LessonAdminDto>> GetAllAdminAsync() =>
         (await repo.GetAllAsync()).Select(ToAdminDto).ToList();
@@ -18,7 +18,7 @@ public class LessonService(ILessonRepository repo) : ILessonService
         var entity = new Lesson
         {
             CategoryId = dto.CategoryId, Title = dto.Title, Description = dto.Description,
-            ProjectId = dto.ProjectId, ExperienceId = dto.ExperienceId,
+            ProjectId = dto.ProjectId, ExperienceId = dto.ExperienceId, IsPublished = dto.IsPublished,
         };
         var created = await repo.AddAsync(entity);
         return ToAdminDto(created);
@@ -28,7 +28,7 @@ public class LessonService(ILessonRepository repo) : ILessonService
         repo.UpdateAsync(new Lesson
         {
             Id = id, CategoryId = dto.CategoryId, Title = dto.Title, Description = dto.Description,
-            ProjectId = dto.ProjectId, ExperienceId = dto.ExperienceId,
+            ProjectId = dto.ProjectId, ExperienceId = dto.ExperienceId, IsPublished = dto.IsPublished,
         });
 
     public Task<bool> DeleteAsync(int id) => repo.DeleteAsync(id);
@@ -38,5 +38,5 @@ public class LessonService(ILessonRepository repo) : ILessonService
         l.Project?.Slug, l.Project?.Title, l.Experience?.Company);
 
     private static LessonAdminDto ToAdminDto(Lesson l) => new(
-        l.Id, l.CategoryId, l.Title, l.Description, l.ProjectId, l.ExperienceId);
+        l.Id, l.CategoryId, l.Title, l.Description, l.ProjectId, l.ExperienceId, l.IsPublished);
 }

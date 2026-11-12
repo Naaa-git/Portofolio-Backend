@@ -9,11 +9,12 @@ public record LessonDto(
 
 public record LessonAdminDto(
     int Id, int CategoryId, Dictionary<string, string> Title, Dictionary<string, string> Description,
-    int? ProjectId, int? ExperienceId);
+    int? ProjectId, int? ExperienceId, bool IsPublished);
 
 public record LessonUpsertDto(
     [Range(1, int.MaxValue)] int CategoryId,
     [TranslatableStringLength(150, MinimumLength = 1)] Dictionary<string, string> Title,
     [TranslatableStringLength(5000, MinimumLength = 1)] Dictionary<string, string> Description,
     int? ProjectId,
-    int? ExperienceId);
+    int? ExperienceId,
+    bool IsPublished);

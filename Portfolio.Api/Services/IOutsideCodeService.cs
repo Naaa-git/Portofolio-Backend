@@ -21,12 +21,14 @@ public interface IOutsideCodeService
     Task<bool> DeleteMovieAsync(int id);
 
     Task<List<MusicArtistDto>> GetMusicArtistsAsync();
-    Task<MusicArtistDto> AddMusicArtistAsync(MusicArtistUpsertDto dto);
+    Task<List<MusicArtistAdminDto>> GetMusicArtistsAdminAsync();
+    Task<MusicArtistAdminDto> AddMusicArtistAsync(MusicArtistUpsertDto dto);
     Task<bool> UpdateMusicArtistAsync(int id, MusicArtistUpsertDto dto);
     Task<bool> DeleteMusicArtistAsync(int id);
 
     Task<List<PodcastChannelDto>> GetPodcastsAsync();
-    Task<PodcastChannelDto> AddPodcastAsync(PodcastChannelUpsertDto dto);
+    Task<List<PodcastChannelAdminDto>> GetPodcastsAdminAsync();
+    Task<PodcastChannelAdminDto> AddPodcastAsync(PodcastChannelUpsertDto dto);
     Task<bool> UpdatePodcastAsync(int id, PodcastChannelUpsertDto dto);
     Task<bool> DeletePodcastAsync(int id);
 

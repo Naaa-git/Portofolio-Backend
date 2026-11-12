@@ -12,9 +12,13 @@ public class SocialLinksController(ISocialLinkService service) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<SocialLinkDto>>> GetAll() => Ok(await service.GetAllAsync());
 
+    [HttpGet("admin")]
+    [Authorize]
+    public async Task<ActionResult<List<SocialLinkAdminDto>>> GetAllAdmin() => Ok(await service.GetAllAdminAsync());
+
     [HttpPost]
     [Authorize]
-    public async Task<ActionResult<SocialLinkDto>> Create(SocialLinkUpsertDto dto) => Ok(await service.CreateAsync(dto));
+    public async Task<ActionResult<SocialLinkAdminDto>> Create(SocialLinkUpsertDto dto) => Ok(await service.CreateAsync(dto));
 
     [HttpPut("{id:int}")]
     [Authorize]
